@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HotelPms/HotelPms.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HotelPms.IntegrationTests/HotelPms.IntegrationTests.csproj" />
+    <Project Path="tests/HotelPms.UnitTests/HotelPms.UnitTests.csproj" />
+  </Folder>
+</Solution>

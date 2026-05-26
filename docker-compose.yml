@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: hotelpms
+      POSTGRES_USER: hotelpms
+      POSTGRES_PASSWORD: hotelpms_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  seq:
+    image: datalust/seq:latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SEQ_FIRSTRUN_ADMINPASSWORD: "admin_dev_2024"
+    ports:
+      - "5341:5341"
+      - "8081:80"
+    volumes:
+      - seqdata:/data
+
+volumes:
+  pgdata:
+  seqdata:
