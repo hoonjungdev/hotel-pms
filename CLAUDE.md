@@ -69,18 +69,19 @@ src/HotelPms/Features/{FeatureName}/
 
 이 항목들은 의도적인 결정이다. 도입을 제안하지 말 것:
 
-| 거부                            | 대신 사용                           |
-| ------------------------------- | ----------------------------------- |
-| Repository 패턴                 | `DbContext` 직접 사용 + 확장 메서드 |
-| AutoMapper / Mapster            | 수동 매핑                           |
-| MediatR                         | 평범한 Handler 클래스               |
-| Full CQRS (읽기/쓰기 모델 분리) | 가벼운 Command/Query 분리 사고만    |
-| Event Sourcing                  | 전통적 CRUD + Domain Event          |
-| MSA / Bounded Context 분리      | 단일 프로젝트 (1단계)               |
-| React + 별도 API                | Blazor 풀스택                       |
-| Message Queue / Kafka           | 필요해지면 그때 (1단계 없음)        |
-| 빈혈 도메인 모델 (Anemic)       | Rich Domain Model                   |
-| Primitive Obsession             | Value Object                        |
+| 거부                            | 대신 사용                                    |
+| ------------------------------- | -------------------------------------------- |
+| Repository 패턴                 | `DbContext` 직접 사용 + 확장 메서드          |
+| AutoMapper / Mapster            | 수동 매핑                                    |
+| MediatR                         | 평범한 Handler 클래스                        |
+| Full CQRS (읽기/쓰기 모델 분리) | 가벼운 Command/Query 분리 사고만             |
+| Event Sourcing                  | 전통적 CRUD + Domain Event                   |
+| MSA / Bounded Context 분리      | 단일 프로젝트 (1단계)                        |
+| React + 별도 API                | Blazor 풀스택                                |
+| Message Queue / Kafka           | 필요해지면 그때 (1단계 없음)                 |
+| 빈혈 도메인 모델 (Anemic)       | Rich Domain Model                            |
+| Primitive Obsession             | Value Object                                 |
+| `Guid` ID 직접 사용             | Strongly-Typed ID (`readonly record struct`) |
 
 ## DDD 규칙
 
@@ -90,6 +91,7 @@ src/HotelPms/Features/{FeatureName}/
 - **Rich Domain Model**: 엔티티에 행위 캡슐화, setter는 private, 불변식은 객체 안에서 보장
 - **Value Object**: `record`로 선언. `Money`, `DateRange`, `RoomNumber` 등
 - **Aggregate**: 트랜잭션 경계. 다른 집계는 **ID로만 참조**
+- **Strongly-Typed ID**: 각 Aggregate 루트는 `readonly record struct` 기반 강타입 ID 사용 (`ReservationId`, `RoomId` 등). Primitive Obsession 방지 + 컴파일 타임 안전성. EF Core `ConfigureConventions`로 일괄 변환. ID 타입은 해당 Feature/Domain에 위치
 - **Domain Event**: `record`로 선언. 메모리 내 처리(in-process). `SaveChangesAsync` 후 디스패치
 - **Factory Method**: `Reservation.Create()` 패턴으로 불변식 보장
 
