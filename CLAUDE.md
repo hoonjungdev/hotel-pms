@@ -10,6 +10,7 @@
 ### 소통 원칙: 항상 "왜"를 설명한다
 
 모든 제안, 리뷰, 방향 제시에는 반드시 **"왜 이 선택인가"**를 포함해야 한다:
+
 - 이 설계를 선택한 이유와 다른 대안 대비 장점
 - 다른 선택지는 무엇이 있고, 왜 그것을 택하지 않는가
 - 이 선택이 포기하는 것은 무엇인가 (트레이드오프)
@@ -17,6 +18,7 @@
 "이렇게 하세요"만으로는 부족하다. "이렇게 하세요, 왜냐하면 ~이고, 다른 방법인 ~은 ~때문에 맞지 않습니다"가 기본 형식이다.
 
 Claude가 해야 하는 것:
+
 - **설계 방향 제시** — 어떤 구조로, 어떤 순서로 구현할지 가이드
 - **코드 리뷰** — 사용자가 작성한 코드에 대해 피드백 (DDD 규칙 준수, 불변식 보장, 네이밍, 구조 등)
 - **트레이드오프 설명** — 선택지를 제시하고 각각의 장단점을 설명
@@ -24,6 +26,7 @@ Claude가 해야 하는 것:
 - **디버깅 지원** — 문제 원인 분석 및 해결 방향 제시 (코드 수정은 사용자가 직접)
 
 Claude가 하지 말아야 하는 것:
+
 - **코드 파일 생성/수정/삭제** — Edit, Write 도구 사용 금지
 - **"이렇게 바꿔줄게"식 자동 수정** — 대신 "이 부분을 이렇게 바꾸면 좋겠다"로 제안
 - **사용자 대신 구현** — 학습 목적 프로젝트이므로 사용자가 직접 코딩해야 의미가 있음
@@ -66,18 +69,18 @@ src/HotelPms/Features/{FeatureName}/
 
 이 항목들은 의도적인 결정이다. 도입을 제안하지 말 것:
 
-| 거부 | 대신 사용 |
-|------|----------|
-| Repository 패턴 | `DbContext` 직접 사용 + 확장 메서드 |
-| AutoMapper / Mapster | 수동 매핑 |
-| MediatR | 평범한 Handler 클래스 |
-| Full CQRS (읽기/쓰기 모델 분리) | 가벼운 Command/Query 분리 사고만 |
-| Event Sourcing | 전통적 CRUD + Domain Event |
-| MSA / Bounded Context 분리 | 단일 프로젝트 (1단계) |
-| React + 별도 API | Blazor 풀스택 |
-| Message Queue / Kafka | 필요해지면 그때 (1단계 없음) |
-| 빈혈 도메인 모델 (Anemic) | Rich Domain Model |
-| Primitive Obsession | Value Object |
+| 거부                            | 대신 사용                           |
+| ------------------------------- | ----------------------------------- |
+| Repository 패턴                 | `DbContext` 직접 사용 + 확장 메서드 |
+| AutoMapper / Mapster            | 수동 매핑                           |
+| MediatR                         | 평범한 Handler 클래스               |
+| Full CQRS (읽기/쓰기 모델 분리) | 가벼운 Command/Query 분리 사고만    |
+| Event Sourcing                  | 전통적 CRUD + Domain Event          |
+| MSA / Bounded Context 분리      | 단일 프로젝트 (1단계)               |
+| React + 별도 API                | Blazor 풀스택                       |
+| Message Queue / Kafka           | 필요해지면 그때 (1단계 없음)        |
+| 빈혈 도메인 모델 (Anemic)       | Rich Domain Model                   |
+| Primitive Obsession             | Value Object                        |
 
 ## DDD 규칙
 
@@ -125,11 +128,11 @@ Pricing:                RatePlan(루트), PriceCalculator(도메인 서비스)
 
 테스트 피라미드가 아닌 **테스트 트로피**. 통합 테스트를 가장 많이 작성.
 
-| 코드 종류 | 테스트 유형 |
-|-----------|------------|
-| Value Object, 순수 도메인 서비스, 상태 머신 | **단위 테스트** |
-| DB 쿼리, Handler, HTTP 요청 | **통합 테스트** (TestContainers + 진짜 PostgreSQL) |
-| 예약->결제->체크인 전체 플로우 | **E2E** (1~2개만) |
+| 코드 종류                                   | 테스트 유형                                        |
+| ------------------------------------------- | -------------------------------------------------- |
+| Value Object, 순수 도메인 서비스, 상태 머신 | **단위 테스트**                                    |
+| DB 쿼리, Handler, HTTP 요청                 | **통합 테스트** (TestContainers + 진짜 PostgreSQL) |
+| 예약->결제->체크인 전체 플로우              | **E2E** (1~2개만)                                  |
 
 ### Mock 원칙
 
@@ -164,6 +167,19 @@ tests/HotelPms.IntegrationTests/Features/{FeatureName}/
 - 주석은 "왜"가 비자명한 경우에만
 - 의심스러우면 더 단순한 쪽을 선택
 - "힙해 보여서"는 선택 이유가 될 수 없음
+
+## 커밋 컨벤션
+
+- **커밋 메시지는 영어로 작성** — 해외 프리랜서 포트폴리오 용도이므로 영어가 기본
+- Conventional Commits 형식: `type: short description`
+  - `feat`, `fix`, `refactor`, `docs`, `test`, `chore` 등
+- 제목은 명령문(imperative mood): "Add feature" (O) / "Added feature" (X)
+
+왜 이 형식인가:
+
+- 영어 필수 — 해외 채용 담당자나 클라이언트가 git log를 볼 때 바로 이해할 수 있어야 합니다. 한국어 커밋은 포트폴리오로서의 가치를 떨어뜨립니다.
+- Conventional Commits — 업계 표준이고, 커밋 히스토리만 봐도 변경의 성격(기능 추가/버그 수정/리팩토링)이 한눈에 보입니다. 포트폴리오에서 "이 사람은 체계적으로 일한다"는 인상을 줍니다.
+- Imperative mood — Git 자체가 이 스타일을 사용하고(Merge branch...), 대부분의 오픈소스 프로젝트가 이 관행을 따릅니다.
 
 ## 현재 단계
 
