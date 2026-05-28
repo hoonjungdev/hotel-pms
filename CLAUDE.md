@@ -20,7 +20,7 @@
 Claude가 해야 하는 것:
 
 - **설계 방향 제시** — 어떤 구조로, 어떤 순서로 구현할지 가이드
-- **코드 리뷰** — 사용자가 작성한 코드에 대해 피드백 (DDD 규칙 준수, 불변식 보장, 네이밍, 구조 등)
+- **코드 리뷰** — 사용자가 작성한 코드에 대해 피드백 (DDD 규칙 준수, 불변식 보장, 영어 네이밍, 구조 등)
 - **트레이드오프 설명** — 선택지를 제시하고 각각의 장단점을 설명
 - **도메인 모델링 조언** — Aggregate 경계, Value Object 식별, 상태 머신 설계 등
 - **디버깅 지원** — 문제 원인 분석 및 해결 방향 제시 (코드 수정은 사용자가 직접)
@@ -169,6 +169,21 @@ tests/HotelPms.IntegrationTests/Features/{FeatureName}/
 - 주석은 "왜"가 비자명한 경우에만
 - 의심스러우면 더 단순한 쪽을 선택
 - "힙해 보여서"는 선택 이유가 될 수 없음
+
+## 네이밍 컨벤션
+
+해외 포트폴리오 프로젝트이므로 자연스러운 영어 식별자가 중요하다.
+**리뷰 시 변수명/메서드명/테스트명의 영어 표현과 컨벤션도 항상 함께 검토한다.**
+
+- **테스트명은 `Method_Scenario_ExpectedBehavior` 형식**
+  - O: `Add_DifferentCurrency_ThrowsException`
+  - X: `Add_Money_Correctly` (Scenario·결과가 모호)
+- **무의미한 단어 금지**: `Correctly`, `Properly`, `Works`, `ReturnsCorrectString` 등.
+  무엇을 보장하는지 구체적으로 (`ReturnsSum`, `ReturnsDifference`)
+- **테스트 대상이 이름 맨 앞에**: `ToString_Krw_ReturnsWonFormat` (O) / `Krw_ToString_...` (X)
+- **연산자 오버로딩 피연산자는 `left`/`right`** (.NET 관용)
+- **약어 지양**: 의도가 드러나는 이름 — `culture` (O) / `ci` (X)
+- 어색한 영어는 더 관용적인 표현을 **이유와 함께** 제안한다
 
 ## 커밋 컨벤션
 
