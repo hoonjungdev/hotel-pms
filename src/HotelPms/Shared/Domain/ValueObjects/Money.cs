@@ -13,18 +13,18 @@ public readonly record struct Money
         {
             throw new ArgumentOutOfRangeException(nameof(amount), "Amount cannot be negative");
         }
-        
+
         Amount = amount;
         Currency = currency;
     }
-    
+
     public static Money operator +(Money left, Money right)
     {
         if (left.Currency != right.Currency)
         {
             throw new InvalidOperationException($"Currency mismatch. {left.Currency} != {right.Currency}");
         }
-        
+
         return new Money(left.Amount + right.Amount, left.Currency);
     }
 
@@ -34,7 +34,7 @@ public readonly record struct Money
         {
             throw new InvalidOperationException($"Currency mismatch. {left.Currency} != {right.Currency}");
         }
-        
+
         return new Money(left.Amount - right.Amount, left.Currency);
     }
 
@@ -50,7 +50,7 @@ public readonly record struct Money
 
     public override string ToString()
     {
-        var culture = Currency switch
+        CultureInfo culture = Currency switch
         {
             Currency.KRW => CultureInfo.CreateSpecificCulture("ko-KR"),
             Currency.USD => CultureInfo.CreateSpecificCulture("en-US"),

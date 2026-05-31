@@ -12,7 +12,7 @@ public class DateRangeTests
 
         Assert.Throws<ArgumentException>(() => new DateRange(start, end));
     }
-    
+
     [Fact]
     public void Constructor_EndEqualsStart_ThrowsArgumentException()
     {
@@ -20,15 +20,15 @@ public class DateRangeTests
 
         Assert.Throws<ArgumentException>(() => new DateRange(start, start));
     }
-    
+
     [Fact]
     public void Nights_TwoNightStay_ReturnsTwo()
     {
         var start = new DateOnly(2026, 6, 10);
         var end = new DateOnly(2026, 6, 12);
-        
+
         var dateRange = new DateRange(start, end);
-        
+
         Assert.Equal(2, dateRange.Nights);
     }
 
@@ -37,14 +37,14 @@ public class DateRangeTests
     {
         var start = new DateOnly(2026, 6, 10);
         var end = new DateOnly(2026, 6, 11);
-        
+
         var dateRange = new DateRange(start, end);
-        
+
         var otherStart = new DateOnly(2026, 6, 11);
         var otherEnd = new DateOnly(2026, 6, 12);
-        
+
         var otherRange = new DateRange(otherStart, otherEnd);
-        
+
         Assert.False(dateRange.Overlaps(otherRange));
     }
 
@@ -53,14 +53,14 @@ public class DateRangeTests
     {
         var start = new DateOnly(2026, 6, 10);
         var end = new DateOnly(2026, 6, 13);
-        
+
         var dateRange = new DateRange(start, end);
-        
+
         var otherStart = new DateOnly(2026, 6, 12);
         var otherEnd = new DateOnly(2026, 6, 14);
-        
+
         var otherRange = new DateRange(otherStart, otherEnd);
-        
+
         Assert.True(dateRange.Overlaps(otherRange));
     }
 
@@ -69,14 +69,14 @@ public class DateRangeTests
     {
         var start = new DateOnly(2026, 6, 10);
         var end = new DateOnly(2026, 6, 15);
-        
+
         var dateRange = new DateRange(start, end);
-        
+
         var otherStart = new DateOnly(2026, 6, 11);
         var otherEnd = new DateOnly(2026, 6, 12);
-        
+
         var otherRange = new DateRange(otherStart, otherEnd);
-        
+
         Assert.True(dateRange.Overlaps(otherRange));
     }
 
@@ -85,14 +85,14 @@ public class DateRangeTests
     {
         var start = new DateOnly(2026, 6, 10);
         var end = new DateOnly(2026, 6, 15);
-        
+
         var dateRange = new DateRange(start, end);
-        
+
         var otherStart = new DateOnly(2026, 7, 11);
         var otherEnd = new DateOnly(2026, 7, 12);
-        
+
         var otherRange = new DateRange(otherStart, otherEnd);
-        
+
         Assert.False(dateRange.Overlaps(otherRange));
     }
 
@@ -101,9 +101,9 @@ public class DateRangeTests
     {
         var start = new DateOnly(2026, 6, 10);
         var end = new DateOnly(2026, 6, 15);
-        
+
         var dateRange = new DateRange(start, end);
-        
+
         Assert.True(dateRange.Overlaps(dateRange));
     }
 
@@ -112,16 +112,16 @@ public class DateRangeTests
     {
         var start = new DateOnly(2026, 6, 10);
         var end = new DateOnly(2026, 6, 15);
-        
+
         var dateRange = new DateRange(start, end);
-        
+
         var otherStart = new DateOnly(2026, 6, 11);
         var otherEnd = new DateOnly(2026, 6, 16);
-        
+
         var otherRange = new DateRange(otherStart, otherEnd);
 
-        var forward = dateRange.Overlaps(otherRange);
-        var reverse = otherRange.Overlaps(dateRange);
+        bool forward = dateRange.Overlaps(otherRange);
+        bool reverse = otherRange.Overlaps(dateRange);
 
         Assert.True(forward);
         Assert.True(reverse);
@@ -132,9 +132,9 @@ public class DateRangeTests
     {
         var start = new DateOnly(2026, 6, 10);
         var end = new DateOnly(2026, 6, 11);
-        
+
         var dateRange = new DateRange(start, end);
-        
+
         Assert.Equal("2026-06-10 ~ 2026-06-11 (1 night)", dateRange.ToString());
     }
 
@@ -143,9 +143,9 @@ public class DateRangeTests
     {
         var start = new DateOnly(2026, 6, 10);
         var end = new DateOnly(2026, 6, 13);
-        
+
         var dateRange = new DateRange(start, end);
-        
+
         Assert.Equal("2026-06-10 ~ 2026-06-13 (3 nights)", dateRange.ToString());
     }
 }

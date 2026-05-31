@@ -10,7 +10,7 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    var builder = WebApplication.CreateBuilder(args);
+    WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
     builder.Host.UseSerilog((context, services, configuration) =>
         configuration.ReadFrom.Configuration(context.Configuration));
@@ -23,7 +23,7 @@ try
 
     builder.Services.AddMudServices();
 
-    var app = builder.Build();
+    WebApplication app = builder.Build();
 
     if (!app.Environment.IsDevelopment())
     {

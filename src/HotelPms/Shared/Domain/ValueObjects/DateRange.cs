@@ -16,9 +16,9 @@ public readonly record struct DateRange
         Start = start;
         End = end;
     }
-    
+
     public bool Overlaps(DateRange other) => Start < other.End && other.Start < End;
-    
+
     public override string ToString()
     {
         return $"{Start:yyyy-MM-dd} ~ {End:yyyy-MM-dd} ({Nights} {(Nights > 1 ? "nights" : "night")})";
