@@ -32,4 +32,10 @@ public class EmailTests
 
         Assert.Equal(expected, email.Value);
     }
+
+    [Fact]
+    public void Create_TooLong_ThrowsException()
+    {
+        Assert.Throws<ArgumentException>(() => Email.Create("abopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrst@no-local.com"));
+    }
 }

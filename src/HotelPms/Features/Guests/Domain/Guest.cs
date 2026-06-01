@@ -28,6 +28,7 @@ public class Guest : AggregateRoot
 
     public static Guest Create(TenantId tenantId, string name, Email? email, PhoneNumber? phoneNumber)
     {
+        EnsureValidTenantId(tenantId);
         EnsureValidName(name);
         EnsureAtLeastOneContact(email, phoneNumber);
 
@@ -36,11 +37,24 @@ public class Guest : AggregateRoot
         return guest;
     }
 
+    private static void EnsureValidTenantId(TenantId tenantId)
+    {
+        if (tenantId.Value == Guid.Empty)
+        {
+            throw new ArgumentException("Tenant ID must have value.", nameof(tenantId));
+        }
+    }
+
     private static void EnsureValidName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
             throw new ArgumentException("A name must be provided.", nameof(name));
+        }
+
+        if (name.Length > 100)
+        {
+            throw new ArgumentException("A name is too long.", nameof(name));
         }
     }
 

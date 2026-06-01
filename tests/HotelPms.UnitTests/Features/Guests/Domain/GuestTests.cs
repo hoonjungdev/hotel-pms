@@ -48,4 +48,16 @@ public class GuestTests
         GuestRegistered registered = Assert.IsType<GuestRegistered>(domainEvent);
         Assert.Equal(guest.Id, registered.GuestId);
     }
+
+    [Fact]
+    public void Create_EmptyTenantId_ThrowsException()
+    {
+        Assert.Throws<ArgumentException>(() => Guest.Create(new TenantId(Guid.Empty), "guest", Email.Create("guest@email.com"), null));
+    }
+
+    [Fact]
+    public void Create_TooLongName_ThrowsException()
+    {
+        Assert.Throws<ArgumentException>(() => Guest.Create(TenantId.New(), "GuestNameIsTooLongGuestNameIsTooLongGuestNameIsTooLongGuestNameIsTooLongGuestNameIsTooLongGuestNameIsTooLong", Email.Create("guest@email.com"), null));
+    }
 }

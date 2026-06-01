@@ -28,7 +28,7 @@ public sealed record Email
 
     private static bool IsValidFormat(string value)
     {
-        if (value.EndsWith('.') || value.EndsWith('@') || value.StartsWith('@'))
+        if (value.EndsWith('.') || value.EndsWith('@') || value.StartsWith('@') || value.Length > 254)
         {
             return false;
         }
