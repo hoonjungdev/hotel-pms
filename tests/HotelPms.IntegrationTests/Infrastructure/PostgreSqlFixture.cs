@@ -13,7 +13,7 @@ public class PostgreSqlFixture : IAsyncLifetime
         await _container.StartAsync();
 
         await using HotelDbContext context = CreateDbContext();
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.MigrateAsync();
     }
 
     public async Task DisposeAsync()
