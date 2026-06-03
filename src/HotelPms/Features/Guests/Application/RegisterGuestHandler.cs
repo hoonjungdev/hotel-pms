@@ -1,20 +1,23 @@
+using FluentValidation;
 using HotelPms.Features.Guests.Domain;
 using HotelPms.Features.Guests.Domain.ValueObjects;
 using HotelPms.Infrastructure.Database;
 
 namespace HotelPms.Features.Guests.Application;
 
-public class RegisterGuestHandler(HotelDbContext context)
+public class RegisterGuestHandler(HotelDbContext context, IValidator<RegisterGuestCommand> validator)
 {
     public async Task<GuestId> HandleAsync(
         RegisterGuestCommand command,
         CancellationToken cancellationToken = default)
     {
-        Email? email = command.Email is null ?
+        await validator.ValidateAndThrowAsync(command, cancellationToken);
+
+        Email? email = string.IsNullOrWhiteSpace(command.Email) ?
             null :
             Email.Create(command.Email);
 
-        PhoneNumber? phoneNumber = command.PhoneNumber is null ?
+        PhoneNumber? phoneNumber = string.IsNullOrWhiteSpace(command.PhoneNumber) ?
             null :
             PhoneNumber.Create(command.PhoneNumber);
 

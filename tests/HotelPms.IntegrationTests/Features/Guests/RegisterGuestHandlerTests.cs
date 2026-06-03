@@ -11,6 +11,7 @@ namespace HotelPms.IntegrationTests.Features.Guests;
 public class RegisterGuestHandlerTests
 {
     private readonly PostgreSqlFixture _fixture;
+    private readonly RegisterGuestCommandValidator _validator = new();
 
     public RegisterGuestHandlerTests(PostgreSqlFixture fixture)
     {
@@ -26,7 +27,7 @@ public class RegisterGuestHandlerTests
 
         await using (HotelDbContext context = _fixture.CreateDbContext())
         {
-            var handler = new RegisterGuestHandler(context);
+            var handler = new RegisterGuestHandler(context, _validator);
 
             guestId = await handler.HandleAsync(command);
         }
@@ -51,7 +52,7 @@ public class RegisterGuestHandlerTests
 
         await using (HotelDbContext context = _fixture.CreateDbContext())
         {
-            var handler = new RegisterGuestHandler(context);
+            var handler = new RegisterGuestHandler(context, _validator);
 
             guestId = await handler.HandleAsync(command);
         }
@@ -68,15 +69,15 @@ public class RegisterGuestHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_NoContact_ThrowsArgumentException()
+    public async Task HandleAsync_NoContact_ThrowsValidationException()
     {
         var command = new RegisterGuestCommand(TenantId.New(), "John Doe", null, null);
 
         await using (HotelDbContext context = _fixture.CreateDbContext())
         {
-            var handler = new RegisterGuestHandler(context);
+            var handler = new RegisterGuestHandler(context, _validator);
 
-            await Assert.ThrowsAsync<ArgumentException>(async () => await handler.HandleAsync(command));
+            await Assert.ThrowsAsync<FluentValidation.ValidationException>(async () => await handler.HandleAsync(command));
         }
     }
 }
