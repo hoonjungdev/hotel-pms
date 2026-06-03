@@ -1,4 +1,6 @@
+using FluentValidation;
 using HotelPms.Components;
+using HotelPms.Features.Guests.Application;
 using HotelPms.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
@@ -22,6 +24,9 @@ try
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
     builder.Services.AddMudServices();
+
+    builder.Services.AddScoped<RegisterGuestHandler>();
+    builder.Services.AddScoped<IValidator<RegisterGuestCommand>, RegisterGuestCommandValidator>();
 
     WebApplication app = builder.Build();
 

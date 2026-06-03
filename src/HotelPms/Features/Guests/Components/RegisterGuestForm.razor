@@ -1,0 +1,93 @@
+@using FluentValidation
+@using HotelPms.Features.Guests.Application
+@using HotelPms.Shared.MultiTenancy
+@using MudBlazor
+@inject RegisterGuestHandler Handler
+@inject ISnackbar Snackbar
+
+<MudPaper Class="pa-4" Style="max-width: 640px;">
+    <MudStack Spacing="3">
+        <MudStack Spacing="1">
+            <MudText Typo="Typo.h6">Guest details</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Capture one reliable contact method before creating a guest profile.
+            </MudText>
+        </MudStack>
+
+        @if (!string.IsNullOrWhiteSpace(_validationMessage))
+        {
+            <MudAlert Severity="MudBlazor.Severity.Error" Dense="true">@_validationMessage</MudAlert>
+        }
+
+        <MudForm>
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="_name"
+                              Label="Name"
+                              Required="true"
+                              Immediate="true" />
+                <MudTextField @bind-Value="_email"
+                              Label="Email"
+                              InputType="InputType.Email"
+                              Immediate="true" />
+                <MudTextField @bind-Value="_phoneNumber"
+                              Label="Phone number"
+                              InputType="InputType.Telephone"
+                              Immediate="true" />
+
+                <MudStack Row="true" Justify="Justify.FlexEnd">
+                    <MudButton Color="Color.Primary"
+                               Variant="Variant.Filled"
+                               Disabled="_isSubmitting"
+                               OnClick="SubmitAsync">
+                        @(_isSubmitting ? "Registering..." : "Register")
+                    </MudButton>
+                </MudStack>
+            </MudStack>
+        </MudForm>
+    </MudStack>
+</MudPaper>
+
+@code {
+    private string _name = "";
+    private string? _email;
+    private string? _phoneNumber;
+    private string? _validationMessage;
+    private bool _isSubmitting;
+
+    private async Task SubmitAsync()
+    {
+        if (_isSubmitting)
+        {
+            return;
+        }
+
+        _isSubmitting = true;
+        _validationMessage = null;
+
+        try
+        {
+            var command = new RegisterGuestCommand(
+                TenantId.New(),
+                _name,
+                _email,
+                _phoneNumber);
+
+            await Handler.HandleAsync(command);
+
+            Snackbar.Add("Guest registered.", MudBlazor.Severity.Success);
+            _name = "";
+            _email = null;
+            _phoneNumber = null;
+        }
+        catch (ValidationException exception)
+        {
+            _validationMessage = exception.Errors.FirstOrDefault()?.ErrorMessage
+                ?? "Please check the guest details.";
+            Snackbar.Add(_validationMessage, MudBlazor.Severity.Error);
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+}
