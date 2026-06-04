@@ -5,6 +5,14 @@
 
 <PageTitle>Register Guest</PageTitle>
 
-<MudText Typo="Typo.h4" Class="mb-4">Register Guest</MudText>
+<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+    <MudText Typo="Typo.h4">Register Guest</MudText>
+    <MudButton Href="/guests"
+               Color="Color.Default"
+               Variant="Variant.Outlined"
+               StartIcon="@Icons.Material.Filled.ArrowBack">
+        Guests
+    </MudButton>
+</MudStack>
 
 <RegisterGuestForm />

@@ -8,6 +8,17 @@
 <MudLayout>
     <MudAppBar Elevation="1">
         <MudText Typo="Typo.h5">HotelPms</MudText>
+        <MudSpacer />
+        <MudTooltip Text="Dashboard">
+            <MudIconButton Href="/"
+                           Color="Color.Inherit"
+                           Icon="@Icons.Material.Filled.Dashboard" />
+        </MudTooltip>
+        <MudTooltip Text="Guests">
+            <MudIconButton Href="/guests"
+                           Color="Color.Inherit"
+                           Icon="@Icons.Material.Filled.People" />
+        </MudTooltip>
     </MudAppBar>
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.Large" Class="my-4">

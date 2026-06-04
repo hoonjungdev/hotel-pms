@@ -1,0 +1,51 @@
+@using HotelPms.Features.Guests.Application
+@using MudBlazor
+
+<MudPaper Class="pa-0" Elevation="1">
+    <MudTable T="GuestListItem"
+              Items="Items"
+              Dense="true"
+              Hover="true"
+              Elevation="0">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Email</MudTh>
+            <MudTh>Phone</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">
+                <MudText Typo="Typo.body2">@context.Name</MudText>
+            </MudTd>
+            <MudTd DataLabel="Email">
+                <MudText Typo="Typo.body2" Color="@GetContactColor(context.Email)">
+                    @FormatContact(context.Email)
+                </MudText>
+            </MudTd>
+            <MudTd DataLabel="Phone">
+                <MudText Typo="Typo.body2" Color="@GetContactColor(context.PhoneNumber)">
+                    @FormatContact(context.PhoneNumber)
+                </MudText>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudStack AlignItems="AlignItems.Center" Class="pa-8" Spacing="2">
+                <MudIcon Icon="@Icons.Material.Filled.PersonSearch" Color="Color.Secondary" Size="Size.Large" />
+                <MudText Typo="Typo.subtitle1">No guests yet</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Registered guest profiles will appear here.
+                </MudText>
+            </MudStack>
+        </NoRecordsContent>
+    </MudTable>
+</MudPaper>
+
+@code {
+    [Parameter]
+    public IReadOnlyList<GuestListItem> Items { get; set; } = [];
+
+    private static string FormatContact(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? "-" : value;
+
+    private static Color GetContactColor(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? Color.Secondary : Color.Default;
+}
