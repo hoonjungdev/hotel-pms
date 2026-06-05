@@ -4,7 +4,6 @@ using HotelPms.Features.Guests.Domain.ValueObjects;
 using HotelPms.Infrastructure.Database;
 using HotelPms.IntegrationTests.Infrastructure;
 using HotelPms.Shared.MultiTenancy;
-using Microsoft.EntityFrameworkCore;
 
 namespace HotelPms.IntegrationTests.Features.Guests;
 
