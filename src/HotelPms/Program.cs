@@ -28,6 +28,7 @@ try
     builder.Services.AddScoped<RegisterGuestHandler>();
     builder.Services.AddScoped<IValidator<RegisterGuestCommand>, RegisterGuestCommandValidator>();
     builder.Services.AddScoped<ListGuestsHandler>();
+    builder.Services.AddScoped<GetGuestHandler>();
 
     WebApplication app = builder.Build();
 
