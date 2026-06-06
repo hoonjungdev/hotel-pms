@@ -1,5 +1,7 @@
 using HotelPms.Features.Guests.Domain;
 using HotelPms.Features.Guests.Infrastructure.Converters;
+using HotelPms.Features.Rooms.Domain;
+using HotelPms.Features.Rooms.Infrastructure.Converters;
 using HotelPms.Infrastructure.Database.Converters;
 using HotelPms.Shared.MultiTenancy;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -22,6 +24,10 @@ public class HotelDbContext : IdentityDbContext
         configurationBuilder
             .Properties<TenantId>()
             .HaveConversion<TenantIdConverter>();
+
+        configurationBuilder
+            .Properties<RoomId>()
+            .HaveConversion<RoomIdConverter>();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
