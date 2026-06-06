@@ -1,10 +1,12 @@
 @page "/guests"
 @using HotelPms.Features.Guests.Application
 @using HotelPms.Features.Guests.Components
+@using HotelPms.Features.Guests.Domain
 @using Microsoft.AspNetCore.Components.Web
 @using MudBlazor
 @inject ListGuestsHandler ListGuestsHandler
 @inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
 
 <PageTitle>Guests</PageTitle>
 
@@ -42,7 +44,7 @@
         <MudAlert Severity="MudBlazor.Severity.Error" Dense="true">@_loadError</MudAlert>
     }
 
-    <GuestList Items="_guests" />
+    <GuestList Items="_guests" GuestSelected="OpenGuestDetails" />
 </MudStack>
 
 @code {
@@ -79,5 +81,10 @@
         {
             _isLoading = false;
         }
+    }
+
+    private void OpenGuestDetails(GuestId guestId)
+    {
+        NavigationManager.NavigateTo($"/guests/{guestId.Value}");
     }
 }
