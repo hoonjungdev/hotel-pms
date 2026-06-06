@@ -1,6 +1,7 @@
 using FluentValidation;
 using HotelPms.Components;
 using HotelPms.Features.Guests.Application;
+using HotelPms.Features.Rooms.Application;
 using HotelPms.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
@@ -29,6 +30,8 @@ try
     builder.Services.AddScoped<IValidator<RegisterGuestCommand>, RegisterGuestCommandValidator>();
     builder.Services.AddScoped<ListGuestsHandler>();
     builder.Services.AddScoped<GetGuestHandler>();
+    builder.Services.AddScoped<AddRoomHandler>();
+    builder.Services.AddScoped<IValidator<AddRoomCommand>, AddRoomCommandValidator>();
 
     WebApplication app = builder.Build();
 
