@@ -1,0 +1,79 @@
+@page "/rooms"
+@using HotelPms.Features.Rooms.Application
+@using HotelPms.Features.Rooms.Components
+@using HotelPms.Shared.MultiTenancy
+@using Microsoft.AspNetCore.Components.Web
+@using MudBlazor
+@inject ListRoomsHandler ListRoomsHandler
+@inject ISnackbar Snackbar
+
+<PageTitle>Rooms</PageTitle>
+
+<MudStack Spacing="3">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <MudStack Spacing="1">
+            <MudText Typo="Typo.h4">Rooms</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Manage physical rooms for the current workspace.
+            </MudText>
+        </MudStack>
+
+        <MudTooltip Text="Refresh rooms">
+            <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                           Color="Color.Default"
+                           Disabled="_isLoading"
+                           OnClick="LoadRoomsAsync" />
+        </MudTooltip>
+    </MudStack>
+
+    <AddRoomForm RoomAdded="LoadRoomsAsync" />
+
+    @if (_isLoading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+    }
+
+    @if (!string.IsNullOrWhiteSpace(_loadError))
+    {
+        <MudAlert Severity="MudBlazor.Severity.Error" Dense="true">@_loadError</MudAlert>
+    }
+
+    <RoomList Items="_rooms" />
+</MudStack>
+
+@code {
+    private IReadOnlyList<RoomListItem> _rooms = [];
+    private string? _loadError;
+    private bool _isLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRoomsAsync();
+    }
+
+    private async Task LoadRoomsAsync()
+    {
+        if (_isLoading)
+        {
+            return;
+        }
+
+        _isLoading = true;
+        _loadError = null;
+
+        try
+        {
+            var query = new ListRoomsQuery(WorkspaceTenant.Id);
+            _rooms = await ListRoomsHandler.HandleAsync(query);
+        }
+        catch
+        {
+            _loadError = "Unable to load rooms.";
+            Snackbar.Add(_loadError, MudBlazor.Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

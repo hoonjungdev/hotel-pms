@@ -32,6 +32,7 @@ try
     builder.Services.AddScoped<GetGuestHandler>();
     builder.Services.AddScoped<AddRoomHandler>();
     builder.Services.AddScoped<IValidator<AddRoomCommand>, AddRoomCommandValidator>();
+    builder.Services.AddScoped<ListRoomsHandler>();
 
     WebApplication app = builder.Build();
 
