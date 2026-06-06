@@ -1,5 +1,6 @@
 @using FluentValidation
 @using HotelPms.Features.Guests.Application
+@using HotelPms.Shared.MultiTenancy
 @using MudBlazor
 @inject RegisterGuestHandler Handler
 @inject NavigationManager Navigation
@@ -68,7 +69,7 @@
         try
         {
             var command = new RegisterGuestCommand(
-                GuestWorkspaceTenant.Id,
+                WorkspaceTenant.Id,
                 _name,
                 _email,
                 _phoneNumber);

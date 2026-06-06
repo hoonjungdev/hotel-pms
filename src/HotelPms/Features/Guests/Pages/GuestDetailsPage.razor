@@ -1,7 +1,7 @@
 @page "/guests/{GuestId:guid}"
 @using HotelPms.Features.Guests.Application
-@using HotelPms.Features.Guests.Components
 @using HotelPms.Features.Guests.Domain
+@using HotelPms.Shared.MultiTenancy
 @using Microsoft.AspNetCore.Components.Web
 @using MudBlazor
 @inject GetGuestHandler GetGuestHandler
@@ -89,7 +89,7 @@
 
         try
         {
-            var query = new GetGuestQuery(GuestWorkspaceTenant.Id, new GuestId(GuestId));
+            var query = new GetGuestQuery(WorkspaceTenant.Id, new GuestId(GuestId));
             _guest = await GetGuestHandler.HandleAsync(query);
         }
         catch

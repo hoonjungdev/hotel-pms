@@ -2,6 +2,7 @@
 @using HotelPms.Features.Guests.Application
 @using HotelPms.Features.Guests.Components
 @using HotelPms.Features.Guests.Domain
+@using HotelPms.Shared.MultiTenancy
 @using Microsoft.AspNetCore.Components.Web
 @using MudBlazor
 @inject ListGuestsHandler ListGuestsHandler
@@ -69,7 +70,7 @@
 
         try
         {
-            var query = new ListGuestsQuery(GuestWorkspaceTenant.Id);
+            var query = new ListGuestsQuery(WorkspaceTenant.Id);
             _guests = await ListGuestsHandler.HandleAsync(query);
         }
         catch
