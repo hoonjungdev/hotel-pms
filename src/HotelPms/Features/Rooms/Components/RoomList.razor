@@ -1,4 +1,5 @@
 @using HotelPms.Features.Rooms.Application
+@using HotelPms.Features.Rooms.Domain
 @using MudBlazor
 
 <MudPaper Class="pa-0" Elevation="1">
@@ -10,6 +11,7 @@
         <HeaderContent>
             <MudTh>Number</MudTh>
             <MudTh>Condition</MudTh>
+            <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Number">
@@ -19,6 +21,24 @@
                 <MudChip T="string" Color="@GetConditionColor(context.Condition)" Size="Size.Small">
                     @context.Condition
                 </MudChip>
+            </MudTd>
+            <MudTd DataLabel="Actions">
+                <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                         Size="Size.Small"
+                         Dense="true">
+                    <MudMenuItem Disabled="@(context.Condition == RoomCondition.Clean.ToString())"
+                                 OnClick="@(() => RequestConditionChange(context.Id, RoomCondition.Clean))">
+                        Mark clean
+                    </MudMenuItem>
+                    <MudMenuItem Disabled="@(context.Condition == RoomCondition.Dirty.ToString())"
+                                 OnClick="@(() => RequestConditionChange(context.Id, RoomCondition.Dirty))">
+                        Mark dirty
+                    </MudMenuItem>
+                    <MudMenuItem Disabled="@(context.Condition == RoomCondition.OutOfService.ToString())"
+                                 OnClick="@(() => RequestConditionChange(context.Id, RoomCondition.OutOfService))">
+                        Take out of service
+                    </MudMenuItem>
+                </MudMenu>
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
@@ -37,6 +57,9 @@
     [Parameter]
     public IReadOnlyList<RoomListItem> Items { get; set; } = [];
 
+    [Parameter]
+    public EventCallback<UpdateRoomConditionRequest> ConditionChangeRequested { get; set; }
+
     private static Color GetConditionColor(string condition) =>
         condition switch
         {
@@ -45,4 +68,9 @@
             "OutOfService" => Color.Error,
             _ => Color.Default
         };
+
+    private async Task RequestConditionChange(RoomId roomId, RoomCondition condition)
+    {
+        await ConditionChangeRequested.InvokeAsync(new UpdateRoomConditionRequest(roomId, condition));
+    }
 }

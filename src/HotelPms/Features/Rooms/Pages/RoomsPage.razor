@@ -1,12 +1,14 @@
 @page "/rooms"
 @using HotelPms.Features.Rooms.Application
 @using HotelPms.Features.Rooms.Components
+@using HotelPms.Features.Rooms.Domain
 @using HotelPms.Shared.MultiTenancy
 @using Microsoft.AspNetCore.Components.Web
 @using MudBlazor
 @inject ListRoomsHandler ListRoomsHandler
 @inject ISnackbar Snackbar
 @inject CurrentTenant CurrentTenant
+@inject UpdateRoomConditionHandler UpdateRoomConditionHandler
 
 <PageTitle>Rooms</PageTitle>
 
@@ -39,7 +41,7 @@
         <MudAlert Severity="MudBlazor.Severity.Error" Dense="true">@_loadError</MudAlert>
     }
 
-    <RoomList Items="_rooms" />
+    <RoomList Items="_rooms" ConditionChangeRequested="UpdateRoomConditionAsync" />
 </MudStack>
 
 @code {
@@ -75,6 +77,26 @@
         finally
         {
             _isLoading = false;
+        }
+    }
+
+    private async Task UpdateRoomConditionAsync(UpdateRoomConditionRequest request)
+    {
+        try
+        {
+            var command = new UpdateRoomConditionCommand(
+                CurrentTenant.Id,
+                request.RoomId,
+                request.Condition);
+
+            await UpdateRoomConditionHandler.HandleAsync(command);
+            Snackbar.Add("Room condition updated.", MudBlazor.Severity.Success);
+
+            await LoadRoomsAsync();
+        }
+        catch
+        {
+            Snackbar.Add("Unable to update room condition.", MudBlazor.Severity.Error);
         }
     }
 }

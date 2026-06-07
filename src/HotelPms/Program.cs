@@ -36,6 +36,8 @@ try
     builder.Services.AddScoped<AddRoomHandler>();
     builder.Services.AddScoped<IValidator<AddRoomCommand>, AddRoomCommandValidator>();
     builder.Services.AddScoped<ListRoomsHandler>();
+    builder.Services.AddScoped<UpdateRoomConditionHandler>();
+    builder.Services.AddScoped<IValidator<UpdateRoomConditionCommand>, UpdateRoomConditionCommandValidator>();
 
     WebApplication app = builder.Build();
 
