@@ -6,6 +6,7 @@
 @using MudBlazor
 @inject ListRoomsHandler ListRoomsHandler
 @inject ISnackbar Snackbar
+@inject CurrentTenant CurrentTenant
 
 <PageTitle>Rooms</PageTitle>
 
@@ -63,7 +64,7 @@
 
         try
         {
-            var query = new ListRoomsQuery(WorkspaceTenant.Id);
+            var query = new ListRoomsQuery(CurrentTenant.Id);
             _rooms = await ListRoomsHandler.HandleAsync(query);
         }
         catch

@@ -3,6 +3,7 @@ using HotelPms.Components;
 using HotelPms.Features.Guests.Application;
 using HotelPms.Features.Rooms.Application;
 using HotelPms.Infrastructure.Database;
+using HotelPms.Shared.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using Serilog;
@@ -25,6 +26,8 @@ try
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
     builder.Services.AddMudServices();
+
+    builder.Services.AddScoped<CurrentTenant>();
 
     builder.Services.AddScoped<RegisterGuestHandler>();
     builder.Services.AddScoped<IValidator<RegisterGuestCommand>, RegisterGuestCommandValidator>();

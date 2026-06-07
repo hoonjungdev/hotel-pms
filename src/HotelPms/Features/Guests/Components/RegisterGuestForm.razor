@@ -5,6 +5,7 @@
 @inject RegisterGuestHandler Handler
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
+@inject CurrentTenant CurrentTenant
 
 <MudPaper Class="pa-4" Style="max-width: 640px;">
     <MudStack Spacing="3">
@@ -69,7 +70,7 @@
         try
         {
             var command = new RegisterGuestCommand(
-                WorkspaceTenant.Id,
+                CurrentTenant.Id,
                 _name,
                 _email,
                 _phoneNumber);

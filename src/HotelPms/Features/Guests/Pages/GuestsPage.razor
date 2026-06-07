@@ -8,6 +8,7 @@
 @inject ListGuestsHandler ListGuestsHandler
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
+@inject CurrentTenant CurrentTenant
 
 <PageTitle>Guests</PageTitle>
 
@@ -70,7 +71,7 @@
 
         try
         {
-            var query = new ListGuestsQuery(WorkspaceTenant.Id);
+            var query = new ListGuestsQuery(CurrentTenant.Id);
             _guests = await ListGuestsHandler.HandleAsync(query);
         }
         catch

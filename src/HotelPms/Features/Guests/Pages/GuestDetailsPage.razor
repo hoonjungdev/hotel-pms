@@ -6,6 +6,7 @@
 @using MudBlazor
 @inject GetGuestHandler GetGuestHandler
 @inject ISnackbar Snackbar
+@inject CurrentTenant CurrentTenant
 
 <PageTitle>Guest Details</PageTitle>
 
@@ -89,7 +90,7 @@
 
         try
         {
-            var query = new GetGuestQuery(WorkspaceTenant.Id, new GuestId(GuestId));
+            var query = new GetGuestQuery(CurrentTenant.Id, new GuestId(GuestId));
             _guest = await GetGuestHandler.HandleAsync(query);
         }
         catch

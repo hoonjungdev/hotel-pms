@@ -4,6 +4,7 @@
 @using MudBlazor
 @inject AddRoomHandler Handler
 @inject ISnackbar Snackbar
+@inject CurrentTenant CurrentTenant
 
 <MudPaper Class="pa-4" Style="max-width: 480px;">
     <MudStack Spacing="3">
@@ -60,7 +61,7 @@
 
         try
         {
-            var command = new AddRoomCommand(WorkspaceTenant.Id, _number);
+            var command = new AddRoomCommand(CurrentTenant.Id, _number);
 
             await Handler.HandleAsync(command);
 
