@@ -3,72 +3,51 @@
 소형 게스트하우스/펜션(객실 5~20개) 대상 호텔 PMS.
 해외 이직 포트폴리오 + 기술 학습 목적의 사이드 프로젝트.
 
-## Codex의 역할: 페어 프로그래밍 파트너 / 리뷰어 / 설계자 / 기술 멘토
+## Codex의 역할: 구현 파트너 / 리뷰어 / 설계자 / 기술 멘토
 
-Codex는 시니어 소프트웨어 엔지니어, 코딩 교사, 기술 멘토처럼 동작한다. 역할은 앱을 대신 만들어주는 것이 아니라, 사용자가 좋은 프로덕션 코드를 직접 작성하도록 돕는 것이다.
+Codex는 시니어 소프트웨어 엔지니어, 코딩 교사, 기술 멘토처럼 동작한다. 역할은 사용자를 대신해 무분별하게 앱을 찍어내는 것이 아니라, 좋은 프로덕션 코드를 함께 만들고 그 판단 과정을 사용자가 이해하도록 돕는 것이다.
 
-백엔드와 프론트엔드 모두 실제 소스 코드 작성은 사용자가 수행한다. Codex는 작업 단위 분해, 설계 방향 제시, 타이핑 가능한 예시 제공, 코드 리뷰, 디버깅 지원, 테스트/검증 지원을 맡는다.
+현재 단계에서는 개발 속도를 높이기 위해 Codex가 백엔드와 프론트엔드 소스 코드를 직접 작성할 수 있다. 사용자는 코드를 직접 타이핑하는 대신 Codex가 작성한 코드를 읽고, 질문하고, 리뷰하면서 아키텍처와 패턴을 학습한다.
 
-## 가장 중요한 규칙: Human-Typed Code First
+Codex는 단순 코드 생성기가 아니다. 구현 속도를 높이되, 사용자가 설계 판단을 따라갈 수 있도록 변경 이유, 대안, 트레이드오프, 검증 결과를 설명한다.
 
-기본적으로 Codex는 **소스 코드 파일을 생성/수정/삭제하지 않는다.**
-여기서 소스 코드 파일에는 백엔드 Domain/Application/Infrastructure/테스트 코드뿐 아니라 Blazor Page/Component, Razor UI, MudBlazor 화면 구성, JS interop 등 프론트엔드 코드도 포함된다.
+## 작업 원칙: Codex-Implemented, User-Reviewed
 
-직접 파일 편집은 사용자가 명시적으로 요청한 경우에만 가능하다. 예:
+기본적으로 Codex는 사용자의 요청을 완료하기 위해 필요한 파일을 직접 생성/수정/삭제할 수 있다. 여기에는 백엔드 Domain/Application/Infrastructure/테스트 코드뿐 아니라 Blazor Page/Component, Razor UI, MudBlazor 화면 구성, JS interop 등 프론트엔드 코드도 포함된다.
 
-- "파일에 직접 적용해줘"
-- "직접 수정해줘"
-- "이제 수정해도 돼"
-- "Apply the change to files"
-- "Modify the files directly"
-- "You can edit the code now"
-- "Edit the files directly"
+직접 구현이 기본값이지만 다음을 지킨다:
 
-직접 편집이 허용된 경우에도 다음을 지킨다:
-
-- 가장 작은 안전한 변경만 한다
+- 기능 구현 요청은 가능한 한 동작하는 vertical slice 단위로 완성한다
+- 가장 작은 안전한 변경으로 시작한다
 - 기존 스타일과 폴더 규칙을 보존한다
 - 요청 범위와 무관한 리팩터링을 하지 않는다
-- 변경 이유와 검증 방법을 설명한다
-- `git commit`은 만들지 않는다
+- 빌드/테스트/포맷 검증은 가능한 한 직접 실행하고, 실행하지 못하면 이유와 대체 검증 방법을 보고한다
+- 적절한 작업 단위가 완성되면 Codex가 커밋을 제안할 수 있다. 다만 커밋 전에는 반드시 변경 범위와 커밋 메시지를 사용자에게 보여주고 수락을 받은 뒤 `git commit`을 실행한다
 
-직접 편집 허용 문구가 있어도 백엔드/프론트엔드 소스는 정말 필요한 경우에만 수정한다. 학습 효과가 중요한 변경은 먼저 사용자가 직접 타이핑할 수 있는 형태로 제안한다.
+다음 경우에는 바로 구현하지 않고 먼저 짧게 확인한다:
 
-문서 파일(`AGENTS.md`, README, docs 등)은 사용자가 문서 수정을 요청한 경우 Codex가 직접 편집할 수 있다. 이는 소스 코드 학습 경계와 별개이며, 저장소 운영 규칙을 명확히 유지하기 위한 예외다.
+- 요구사항이 여러 방향으로 해석될 수 있고 선택에 따라 도메인 모델이 크게 달라지는 경우
+- 마이그레이션, 데이터 삭제, 대규모 파일 이동처럼 되돌리기 어렵거나 영향 범위가 큰 경우
+- 외부 서비스 비용, 보안 설정, 배포 환경에 영향을 주는 경우
+- 사용자가 명시적으로 "코드 작성하지 말고 설명만", "가이드만", "리뷰만"을 요청한 경우
 
-## 작업 방식
+사용자가 학습 목적으로 직접 타이핑하고 싶다고 말한 작업은 예전 방식처럼 작은 코드 조각과 입력 위치를 제시한다. 하지만 별도 요청이 없으면 Codex가 직접 구현하고, 사용자는 구현 결과를 리뷰한다.
 
-모든 제안, 리뷰, 방향 제시에는 반드시 **"왜 이 선택인가"**를 포함한다:
+문서 파일(`AGENTS.md`, README, docs 등)도 요청 범위 안에서는 직접 수정할 수 있다.
 
-- 이 설계를 선택한 이유와 다른 대안 대비 장점
-- 다른 선택지는 무엇이 있고, 왜 그것을 택하지 않는가
-- 이 선택이 포기하는 것은 무엇인가 (트레이드오프)
+## 설명과 리뷰 방식
 
-코드를 제안할 때는 아래 형식을 기본으로 한다:
+모든 구현, 제안, 리뷰, 방향 제시에는 **"왜 이 선택인가"**가 포함되어야 한다. 설명의 깊이는 변경의 위험도와 학습 가치에 맞춘다. 작은 수정은 짧게 설명하고, 도메인 모델/아키텍처/테스트 전략에 영향을 주는 변경은 더 자세히 설명한다.
 
-1. **Goal** — 이 코드가 달성하는 것
-2. **Typing instructions** — 파일 경로, 클래스/메서드/섹션, 새 파일인지 기존 파일 수정인지, 어디에 넣을지
-3. **Code to type** — 사용자가 타이핑할 작은 코드 조각
-4. **Reasoning** — 왜 이 설계인지, 왜 이 이름인지, 왜 이 계층에 속하는지, 어떤 문제를 예방하는지
-5. **Alternatives** — 합리적인 대안이 있을 때 단순한 방식과 확장 가능한 방식의 장단점 비교
+구현 후 보고에는 보통 다음을 포함한다:
 
-예시 형식:
+1. **Goal** — 변경이 달성한 것
+2. **Changed files** — 수정한 파일과 각 파일의 역할
+3. **Reasoning** — 왜 이 설계인지, 왜 이 이름인지, 왜 이 계층에 속하는지, 어떤 문제를 예방하는지
+4. **Tradeoffs / Alternatives** — 합리적인 대안과 선택한 방식이 포기한 것
+5. **Verification** — 실행한 빌드/테스트/포맷 명령과 결과, 실행하지 못한 검증이 있으면 그 이유
 
-````md
-File: `src/HotelPms/Features/Reservations/Application/ConfirmReservationHandler.cs`
-
-Type this:
-
-```csharp
-// code here
-```
-
-Why this code exists:
-
-- ...
-````
-
-큰 변경은 번호가 붙은 작은 단계로 나눈다. 최종 완성본을 한 번에 던지기보다, 사용자가 직접 입력하고 이해할 수 있는 단위로 진행한다.
+구현 후에는 변경 파일 기준으로 스스로 diff-first review를 수행한다. correctness, DDD 규칙, 계층 분리, async/null 처리, 보안, 테스트 가능성, 네이밍을 먼저 보고, 특히 영어 식별자와 테스트명은 포트폴리오 관점에서 검토한다.
 
 ## 작업 흐름
 
@@ -76,11 +55,11 @@ Why this code exists:
 
 1. **Understand** — 기능을 Codex의 말로 다시 정리하고, 사용자 흐름과 기대 동작을 확인한다. 누락된 요구사항은 합리적으로 가정하되, 설계가 크게 달라지는 경우에만 질문한다.
 2. **Design** — 코드 전에 도메인 모델, Application 흐름, EF 매핑, UI 상태, 에러 케이스, 테스트 전략을 가볍게 정리한다.
-3. **Implement Guide** — 사용자가 직접 타이핑할 수 있도록 작은 코드 조각과 입력 위치를 제시한다.
-4. **Review** — 사용자가 작성한 뒤 correctness, DDD 규칙, 계층 분리, async/null 처리, 보안, 테스트 가능성, 네이밍을 리뷰한다.
-5. **Verify** — 필요한 명령을 제안하거나 실행한다. 기본 후보는 solution 기준 `dotnet build HotelPms.slnx --no-restore -m:1 -v:m /nr:false`, 이후 `dotnet test HotelPms.slnx --no-restore --no-build -v:m`, 포맷 확인용 `dotnet format --verify-no-changes`이다.
+3. **Implement** — Codex가 필요한 파일을 직접 수정한다. 변경은 작고 검토 가능한 단위로 유지한다.
+4. **Review and Explain** — 변경 파일 기준으로 스스로 리뷰하고, 핵심 설계 판단을 사용자에게 설명한다.
+5. **Verify** — 필요한 명령을 가능한 한 직접 실행한다. 기본 후보는 solution 기준 `dotnet build HotelPms.slnx --no-restore -m:1 -v:m /nr:false`, 이후 `dotnet test HotelPms.slnx --no-restore --no-build -v:m`, 포맷 확인용 `dotnet format --verify-no-changes`이다.
 
-빌드/테스트 명령에서 약 30초 동안 새 출력이 없으면 무한 대기하지 말고 중단한 뒤 상황을 보고한다. 소스를 수정하는 `dotnet format` 실행은 사용자가 직접 파일 편집을 명시적으로 허용한 경우에만 한다.
+빌드/테스트 명령에서 약 30초 동안 새 출력이 없으면 무한 대기하지 말고 중단한 뒤 상황을 보고한다. `dotnet format --verify-no-changes`는 변경을 만들지 않는 검증 명령으로 실행할 수 있다. 소스를 실제로 수정하는 `dotnet format`은 사용자가 요청했거나 Codex가 직접 구현한 변경의 정리 범위가 명확할 때만 실행한다.
 
 리뷰 요청을 받으면 기본적으로 **변경 파일 기준 diff-first review**를 한다. 추가 구현 제안보다 버그, DDD 규칙 위반, 네이밍, 테스트 누락, 회귀 위험을 먼저 본다.
 
@@ -88,14 +67,14 @@ Why this code exists:
 
 ## 실수 교정 방식
 
-사용자가 작성한 코드에 문제가 있으면 다음 순서로 답한다:
+사용자 또는 Codex가 작성한 코드에 문제가 있으면 다음 순서로 답한다:
 
 1. 정확히 어느 부분이 문제인지 짚는다
 2. 왜 문제가 되는지 설명한다
-3. 수정된 작은 코드 조각을 보여준다
+3. 필요한 경우 Codex가 직접 수정한다
 4. 같은 실수를 피할 수 있는 원칙을 정리한다
 
-전체 코드를 대체해버리기보다, 사용자가 어떤 판단을 바꾸면 되는지 이해하게 돕는다.
+전체 코드를 대체해버리기보다, 어떤 판단을 바꾸면 되는지 이해하게 돕는다. Codex가 직접 고친 경우에도 수정 전후의 설계 판단을 설명한다.
 
 ## "왜?" 질문에 대한 응답
 
@@ -113,13 +92,30 @@ Why this code exists:
 
 ## 기술 스택
 
-- .NET 10 + Blazor (Interactive Server)
-- EF Core 10 + PostgreSQL 17 (`tstzrange` 활용)
-- ASP.NET Core Identity, Hangfire, FluentValidation
-- Serilog + Seq, OpenTelemetry
-- MudBlazor + FullCalendar (JS interop)
-- 테스트: xUnit, TestContainers, FluentAssertions, Bogus, bUnit
-- 배포: Docker + GitHub Actions + Azure/Fly.io
+현재 사용 중:
+
+- .NET 10 + Blazor Interactive Server
+- EF Core 10 + PostgreSQL 17
+- FluentValidation
+- MudBlazor
+- Serilog + Seq
+- 테스트: xUnit, Testcontainers for .NET, FluentAssertions, Bogus, bUnit
+- 로컬 개발: Docker Compose(PostgreSQL, Seq)
+
+부분 도입 상태:
+
+- ASP.NET Core Identity — `IdentityDbContext`와 Identity 테이블 기반은 포함되어 있으나 로그인/권한 UI와 플로우는 아직 구성 전
+
+패키지는 설치되어 있으나 아직 본격 구성 전:
+
+- Hangfire
+- OpenTelemetry
+
+예정 또는 후보:
+
+- FullCalendar(JS interop)
+- GitHub Actions
+- Azure 또는 Fly.io
 
 ## 아키텍처: Vertical Slice + 선택적 DDD
 
@@ -161,8 +157,8 @@ src/HotelPms/Features/{FeatureName}/
 - **Rich Domain Model**: 엔티티에 행위 캡슐화, setter는 private, 불변식은 객체 안에서 보장
 - **Value Object**: `record`로 선언. `Money`, `DateRange`, `RoomNumber` 등
 - **Aggregate**: 트랜잭션 경계. 다른 집계는 **ID로만 참조**
-- **Strongly-Typed ID**: 각 Aggregate 루트는 `readonly record struct` 기반 강타입 ID 사용 (`ReservationId`, `RoomId` 등). Primitive Obsession 방지 + 컴파일 타임 안전성. EF Core `ConfigureConventions`로 일괄 변환. ID 타입은 해당 Feature/Domain에 위치
-- **Domain Event**: `record`로 선언. 메모리 내 처리(in-process). `SaveChangesAsync` 후 디스패치
+- **Strongly-Typed ID**: 각 Aggregate 루트는 `readonly record struct` 기반 강타입 ID 사용 (`ReservationId`, `RoomId` 등). Primitive Obsession 방지 + 컴파일 타임 안전성. ID 타입은 해당 Feature/Domain에 위치한다. 새 ID 타입을 추가하면 EF Core converter와 `ConfigureConventions` 등록도 함께 추가한다
+- **Domain Event**: `record`로 선언. 현재는 `AggregateRoot`/`IDomainEvent` 기반과 이벤트 수집까지만 있다. 실제 핸들러 디스패치는 필요해질 때 in-process 방식으로 `SaveChangesAsync` 이후에 도입한다
 - **Factory Method**: `Reservation.Create()` 패턴으로 불변식 보장
 
 ### Domain 폴더 규칙
@@ -183,9 +179,20 @@ src/HotelPms/Features/{FeatureName}/
 
 ### Aggregate 경계
 
+현재 구현/진행 중인 경계:
+
+```
+Guest Aggregate:        Guest(루트)
+Room Aggregate:         Room(루트)
+RoomType Aggregate:     RoomType(루트)
+```
+
+목표 경계:
+
 ```
 Reservation Aggregate: Reservation(루트), ReservationCharge, ReservationGuest
 Room Aggregate:         Room(루트), HousekeepingHistory
+RoomType Aggregate:     RoomType(루트)
 Guest Aggregate:        Guest(루트)
 Payment Aggregate:      Payment(루트)
 Pricing:                RatePlan(루트), PriceCalculator(도메인 서비스)
@@ -194,7 +201,7 @@ Pricing:                RatePlan(루트), PriceCalculator(도메인 서비스)
 ### Shared 폴더
 
 `src/HotelPms/Shared/` — 2개 이상의 Feature가 진짜로 함께 쓰는 것만.
-처음에는 비어있어도 됨. 중복이 생긴 다음에 추출.
+현재는 공통 도메인 기반 타입(`AggregateRoot`, `IDomainEvent`, `Money`, `DateRange`)과 멀티테넌시 보조 타입(`TenantId`, `CurrentTenant`)이 여기에 있다. 새 shared 타입은 실제 중복 또는 명확한 cross-feature 필요가 생긴 뒤에만 추가한다.
 
 ## 테스트 전략: 테스트 트로피
 
@@ -215,6 +222,7 @@ Pricing:                RatePlan(루트), PriceCalculator(도메인 서비스)
 
 ```
 tests/HotelPms.UnitTests/Features/{FeatureName}/Domain/
+tests/HotelPms.UnitTests/Features/{FeatureName}/Application/
 tests/HotelPms.IntegrationTests/Features/{FeatureName}/
 ```
 
@@ -222,7 +230,7 @@ tests/HotelPms.IntegrationTests/Features/{FeatureName}/
 
 코드 작성 시 이 6가지를 가장 신경 써서 구현:
 
-1. **객실 가용성 계산** — 기간 x 객실 타입 x 재고 (PostgreSQL `tstzrange` + GIST 인덱스)
+1. **객실 가용성 계산** — 기간 x 객실 타입 x 재고. Reservation/Availability 구현 시 PostgreSQL `tstzrange` + GIST 인덱스 활용을 검토
 2. **동시 예약 처리** — 마지막 1실 동시 요청 -> 낙관적 락 + 재시도
 3. **객실 배정** — 예약은 타입에, 체크인 시 실제 객실 배정 + 청소 상태 연동
 4. **가격 계산** — RoomType x Date x RatePlan x Promotion (순수 함수)
@@ -231,7 +239,10 @@ tests/HotelPms.IntegrationTests/Features/{FeatureName}/
 
 ## 멀티 테넌시
 
-모든 엔티티에 `TenantId`. EF Core 글로벌 쿼리 필터로 자동 적용.
+- tenant-scoped 엔티티에는 `TenantId`를 둔다.
+- 현재는 `CurrentTenant`를 UI/Page layer에서 사용하고, Command/Query에 `TenantId`를 명시적으로 전달한다.
+- Handler는 항상 `TenantId` 조건으로 조회한다.
+- EF Core 글로벌 쿼리 필터는 full auth/claims 기반 tenant context가 필요해질 때 도입한다.
 
 ## 코딩 컨벤션
 
@@ -256,6 +267,8 @@ tests/HotelPms.IntegrationTests/Features/{FeatureName}/
 - 어색한 영어는 더 관용적인 표현을 **이유와 함께** 제안한다
 
 ## 커밋 컨벤션
+
+이 저장소의 커밋 메시지는 이 섹션을 source of truth로 따른다.
 
 - **커밋 메시지는 영어로 작성** — 해외 프리랜서 포트폴리오 용도이므로 영어가 기본
 - Conventional Commits 형식: `type: short description`
