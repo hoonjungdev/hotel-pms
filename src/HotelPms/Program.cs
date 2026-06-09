@@ -36,6 +36,9 @@ try
     builder.Services.AddScoped<AddRoomHandler>();
     builder.Services.AddScoped<IValidator<AddRoomCommand>, AddRoomCommandValidator>();
     builder.Services.AddScoped<ListRoomsHandler>();
+    builder.Services.AddScoped<CreateRoomTypeHandler>();
+    builder.Services.AddScoped<IValidator<CreateRoomTypeCommand>, CreateRoomTypeCommandValidator>();
+    builder.Services.AddScoped<ListRoomTypesHandler>();
     builder.Services.AddScoped<UpdateRoomConditionHandler>();
     builder.Services.AddScoped<IValidator<UpdateRoomConditionCommand>, UpdateRoomConditionCommandValidator>();
 

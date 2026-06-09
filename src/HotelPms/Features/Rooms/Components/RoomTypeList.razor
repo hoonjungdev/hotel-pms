@@ -1,0 +1,47 @@
+@using HotelPms.Features.Rooms.Application
+@using MudBlazor
+
+<MudPaper Class="pa-0" Elevation="1">
+    <MudTable T="RoomTypeListItem"
+              Items="Items"
+              Dense="true"
+              Hover="true"
+              Elevation="0">
+        <HeaderContent>
+            <MudTh>Code</MudTh>
+            <MudTh>Name</MudTh>
+            <MudTh>Base occupancy</MudTh>
+            <MudTh>Max occupancy</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Code">
+                <MudChip T="string" Color="Color.Primary" Size="Size.Small">
+                    @context.Code
+                </MudChip>
+            </MudTd>
+            <MudTd DataLabel="Name">
+                <MudText Typo="Typo.body2">@context.Name</MudText>
+            </MudTd>
+            <MudTd DataLabel="Base occupancy">
+                <MudText Typo="Typo.body2">@context.BaseOccupancy</MudText>
+            </MudTd>
+            <MudTd DataLabel="Max occupancy">
+                <MudText Typo="Typo.body2">@context.MaxOccupancy</MudText>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudStack AlignItems="AlignItems.Center" Class="pa-8" Spacing="2">
+                <MudIcon Icon="@Icons.Material.Filled.KingBed" Color="Color.Secondary" Size="Size.Large" />
+                <MudText Typo="Typo.subtitle1">No room types yet</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Created room types will appear here.
+                </MudText>
+            </MudStack>
+        </NoRecordsContent>
+    </MudTable>
+</MudPaper>
+
+@code {
+    [Parameter]
+    public IReadOnlyList<RoomTypeListItem> Items { get; set; } = [];
+}
