@@ -28,6 +28,10 @@ public class HotelDbContext : IdentityDbContext
         configurationBuilder
             .Properties<RoomId>()
             .HaveConversion<RoomIdConverter>();
+
+        configurationBuilder
+            .Properties<RoomTypeId>()
+            .HaveConversion<RoomTypeIdConverter>();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

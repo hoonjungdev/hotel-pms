@@ -87,6 +87,45 @@ namespace HotelPms.Infrastructure.Database.Migrations
                     b.ToTable("rooms", (string)null);
                 });
 
+            modelBuilder.Entity("HotelPms.Features.Rooms.Domain.RoomType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("BaseOccupancy")
+                        .HasColumnType("integer")
+                        .HasColumnName("base_occupancy");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("code");
+
+                    b.Property<int>("MaxOccupancy")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_occupancy");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_room_types_tenant_id_code");
+
+                    b.ToTable("room_types", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
