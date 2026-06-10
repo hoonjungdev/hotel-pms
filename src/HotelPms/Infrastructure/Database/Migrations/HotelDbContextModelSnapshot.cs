@@ -87,7 +87,7 @@ namespace HotelPms.Infrastructure.Database.Migrations
                     b.ToTable("rooms", (string)null);
                 });
 
-            modelBuilder.Entity("HotelPms.Features.Rooms.Domain.RoomType", b =>
+            modelBuilder.Entity("HotelPms.Features.RoomTypes.Domain.RoomType", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")

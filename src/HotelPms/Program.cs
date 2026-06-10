@@ -1,11 +1,20 @@
 using FluentValidation;
-using HotelPms.Components;
-using HotelPms.Features.Guests.Application;
-using HotelPms.Features.Rooms.Application;
+using HotelPms.Features.Guests;
+using HotelPms.Features.Guests.GetGuest;
+using HotelPms.Features.Guests.ListGuests;
+using HotelPms.Features.Guests.RegisterGuest;
+using HotelPms.Features.Rooms;
+using HotelPms.Features.Rooms.AddRoom;
+using HotelPms.Features.Rooms.GetRoom;
+using HotelPms.Features.Rooms.ListRooms;
+using HotelPms.Features.Rooms.UpdateRoomCondition;
+using HotelPms.Features.RoomTypes;
+using HotelPms.Features.RoomTypes.CreateRoomType;
+using HotelPms.Features.RoomTypes.GetRoomType;
+using HotelPms.Features.RoomTypes.ListRoomTypes;
 using HotelPms.Infrastructure.Database;
-using HotelPms.Shared.MultiTenancy;
+using HotelPms.Infrastructure.Database.Seed;
 using Microsoft.EntityFrameworkCore;
-using MudBlazor.Services;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -19,15 +28,11 @@ try
     builder.Host.UseSerilog((context, services, configuration) =>
         configuration.ReadFrom.Configuration(context.Configuration));
 
-    builder.Services.AddRazorComponents()
-        .AddInteractiveServerComponents();
+    builder.Services.AddProblemDetails();
+    builder.Services.AddOpenApi();
 
     builder.Services.AddDbContext<HotelDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-    builder.Services.AddMudServices();
-
-    builder.Services.AddScoped<CurrentTenant>();
 
     builder.Services.AddScoped<RegisterGuestHandler>();
     builder.Services.AddScoped<IValidator<RegisterGuestCommand>, RegisterGuestCommandValidator>();
@@ -36,9 +41,11 @@ try
     builder.Services.AddScoped<AddRoomHandler>();
     builder.Services.AddScoped<IValidator<AddRoomCommand>, AddRoomCommandValidator>();
     builder.Services.AddScoped<ListRoomsHandler>();
+    builder.Services.AddScoped<GetRoomHandler>();
     builder.Services.AddScoped<CreateRoomTypeHandler>();
     builder.Services.AddScoped<IValidator<CreateRoomTypeCommand>, CreateRoomTypeCommandValidator>();
     builder.Services.AddScoped<ListRoomTypesHandler>();
+    builder.Services.AddScoped<GetRoomTypeHandler>();
     builder.Services.AddScoped<UpdateRoomConditionHandler>();
     builder.Services.AddScoped<IValidator<UpdateRoomConditionCommand>, UpdateRoomConditionCommandValidator>();
 
@@ -46,28 +53,35 @@ try
 
     if (!app.Environment.IsDevelopment())
     {
-        app.UseExceptionHandler("/Error", createScopeForErrors: true);
+        app.UseExceptionHandler();
         app.UseHsts();
     }
 
     app.UseHttpsRedirection();
-    app.UseAntiforgery();
     app.UseSerilogRequestLogging();
 
-    app.MapStaticAssets();
-    app.MapRazorComponents<App>()
-        .AddInteractiveServerRenderMode();
+    app.MapOpenApi();
+    app.MapGet("/", () => Results.Ok(new
+    {
+        Name = "hotel-pms API",
+        Status = "Running",
+        OpenApi = "/openapi/v1.json"
+    }));
+
+    app.MapGuestEndpoints();
+    app.MapRoomEndpoints();
+    app.MapRoomTypeEndpoints();
+
+    if (args.Contains("--seed-demo-data", StringComparer.OrdinalIgnoreCase))
+    {
+        await app.Services.SeedDemoDataAsync();
+    }
 
     app.Run();
-}
-catch (HostAbortedException)
-{
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "Application terminated unexpectedly");
 }
 finally
 {
     Log.CloseAndFlush();
 }
+
+public partial class Program;

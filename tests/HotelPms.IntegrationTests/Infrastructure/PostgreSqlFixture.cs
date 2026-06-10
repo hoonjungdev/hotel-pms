@@ -8,6 +8,8 @@ public class PostgreSqlFixture : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:17-alpine").Build();
 
+    public string ConnectionString => _container.GetConnectionString();
+
     public async Task InitializeAsync()
     {
         await _container.StartAsync();
@@ -24,7 +26,7 @@ public class PostgreSqlFixture : IAsyncLifetime
     public HotelDbContext CreateDbContext()
     {
         DbContextOptions<HotelDbContext> options = new DbContextOptionsBuilder<HotelDbContext>()
-            .UseNpgsql(_container.GetConnectionString())
+            .UseNpgsql(ConnectionString)
             .Options;
 
         return new HotelDbContext(options);

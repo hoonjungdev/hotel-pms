@@ -1,0 +1,62 @@
+@baseUrl = http://localhost:5216
+@tenantId = 11111111-1111-1111-1111-111111111111
+
+### API metadata
+GET {{baseUrl}}/
+
+### OpenAPI document
+GET {{baseUrl}}/openapi/v1.json
+
+### Create room type
+POST {{baseUrl}}/api/room-types
+Content-Type: application/json
+X-Tenant-Id: {{tenantId}}
+
+{
+  "code": "DBL",
+  "name": "Double",
+  "baseOccupancy": 2,
+  "maxOccupancy": 3
+}
+
+### List room types
+GET {{baseUrl}}/api/room-types
+X-Tenant-Id: {{tenantId}}
+
+### Add room
+POST {{baseUrl}}/api/rooms
+Content-Type: application/json
+X-Tenant-Id: {{tenantId}}
+
+{
+  "number": "101"
+}
+
+### List rooms
+GET {{baseUrl}}/api/rooms
+X-Tenant-Id: {{tenantId}}
+
+### Update room condition
+# Replace the room ID with a value returned by "Add room".
+PATCH {{baseUrl}}/api/rooms/00000000-0000-0000-0000-000000000000/condition
+Content-Type: application/json
+X-Tenant-Id: {{tenantId}}
+
+{
+  "condition": "Dirty"
+}
+
+### Register guest
+POST {{baseUrl}}/api/guests
+Content-Type: application/json
+X-Tenant-Id: {{tenantId}}
+
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "phoneNumber": "+821012345678"
+}
+
+### List guests
+GET {{baseUrl}}/api/guests
+X-Tenant-Id: {{tenantId}}

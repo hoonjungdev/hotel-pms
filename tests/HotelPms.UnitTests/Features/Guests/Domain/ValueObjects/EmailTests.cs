@@ -10,7 +10,7 @@ public class EmailTests
     [InlineData("   ")]
     public void Create_NullOrWhitespace_ThrowsException(string? value)
     {
-        Assert.Throws<ArgumentException>(() => Email.Create(value));
+        Assert.Throws<ArgumentException>(() => Email.Create(value!));
     }
 
     [Theory]

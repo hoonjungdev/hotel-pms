@@ -10,7 +10,7 @@ public class PhoneNumberTests
     [InlineData("   ")]
     public void Create_NullOrWhitespace_ThrowsException(string? value)
     {
-        Assert.Throws<ArgumentException>(() => PhoneNumber.Create(value));
+        Assert.Throws<ArgumentException>(() => PhoneNumber.Create(value!));
     }
 
     [Theory]
