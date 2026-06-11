@@ -54,6 +54,7 @@ All tenant-scoped endpoints currently require the `X-Tenant-Id` header.
 | `GET` | `/api/room-types` | List room types |
 | `GET` | `/api/room-types/{roomTypeId}` | Get one room type |
 | `POST` | `/api/room-types` | Create room type |
+| `POST` | `/api/reservations` | Create reservation |
 
 ## Local Development
 
@@ -122,6 +123,15 @@ curl -X POST http://localhost:5216/api/guests \
   -H "Content-Type: application/json" \
   -H "X-Tenant-Id: 11111111-1111-1111-1111-111111111111" \
   -d '{"name":"Jane Doe","email":"jane@example.com","phoneNumber":"+821012345678"}'
+```
+
+Create a reservation:
+
+```bash
+curl -X POST http://localhost:5216/api/reservations \
+  -H "Content-Type: application/json" \
+  -H "X-Tenant-Id: 11111111-1111-1111-1111-111111111111" \
+  -d '{"primaryGuestId":"replace-with-guest-id","roomTypeId":"replace-with-room-type-id","checkInDate":"2026-07-01","checkOutDate":"2026-07-03","guestCount":2}'
 ```
 
 More runnable examples are in `docs/api/hotel-pms.http`.

@@ -13,6 +13,8 @@ public sealed class GuestConfiguration : IEntityTypeConfiguration<Guest>
 
         builder.HasKey(guest => guest.Id);
 
+        builder.HasAlternateKey(guest => new { guest.TenantId, guest.Id });
+
         builder.Property(guest => guest.Id)
             .HasColumnName("id");
 

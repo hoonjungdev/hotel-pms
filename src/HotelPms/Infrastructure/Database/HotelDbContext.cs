@@ -1,5 +1,7 @@
 using HotelPms.Features.Guests.Domain;
 using HotelPms.Features.Guests.Infrastructure.Converters;
+using HotelPms.Features.Reservations.Domain;
+using HotelPms.Features.Reservations.Infrastructure.Converters;
 using HotelPms.Features.Rooms.Domain;
 using HotelPms.Features.Rooms.Infrastructure.Converters;
 using HotelPms.Features.RoomTypes.Domain;
@@ -34,6 +36,10 @@ public class HotelDbContext : IdentityDbContext
         configurationBuilder
             .Properties<RoomTypeId>()
             .HaveConversion<RoomTypeIdConverter>();
+
+        configurationBuilder
+            .Properties<ReservationId>()
+            .HaveConversion<ReservationIdConverter>();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

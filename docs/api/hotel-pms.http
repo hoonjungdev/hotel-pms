@@ -1,6 +1,7 @@
 @baseUrl = http://localhost:5216
 @tenantId = 11111111-1111-1111-1111-111111111111
 @roomTypeId = 00000000-0000-0000-0000-000000000000
+@guestId = 00000000-0000-0000-0000-000000000000
 
 ### API metadata
 GET {{baseUrl}}/
@@ -63,3 +64,18 @@ X-Tenant-Id: {{tenantId}}
 ### List guests
 GET {{baseUrl}}/api/guests
 X-Tenant-Id: {{tenantId}}
+
+### Create reservation
+# Replace guestId with a value returned by "Register guest" or "List guests".
+# Replace roomTypeId with a value returned by "Create room type" or "List room types".
+POST {{baseUrl}}/api/reservations
+Content-Type: application/json
+X-Tenant-Id: {{tenantId}}
+
+{
+  "primaryGuestId": "{{guestId}}",
+  "roomTypeId": "{{roomTypeId}}",
+  "checkInDate": "2026-07-01",
+  "checkOutDate": "2026-07-03",
+  "guestCount": 2
+}

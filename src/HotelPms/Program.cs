@@ -3,6 +3,8 @@ using HotelPms.Features.Guests;
 using HotelPms.Features.Guests.GetGuest;
 using HotelPms.Features.Guests.ListGuests;
 using HotelPms.Features.Guests.RegisterGuest;
+using HotelPms.Features.Reservations;
+using HotelPms.Features.Reservations.CreateReservation;
 using HotelPms.Features.Rooms;
 using HotelPms.Features.Rooms.AddRoom;
 using HotelPms.Features.Rooms.GetRoom;
@@ -48,6 +50,8 @@ try
     builder.Services.AddScoped<GetRoomTypeHandler>();
     builder.Services.AddScoped<UpdateRoomConditionHandler>();
     builder.Services.AddScoped<IValidator<UpdateRoomConditionCommand>, UpdateRoomConditionCommandValidator>();
+    builder.Services.AddScoped<CreateReservationHandler>();
+    builder.Services.AddScoped<IValidator<CreateReservationCommand>, CreateReservationCommandValidator>();
 
     WebApplication app = builder.Build();
 
@@ -71,6 +75,7 @@ try
     app.MapGuestEndpoints();
     app.MapRoomEndpoints();
     app.MapRoomTypeEndpoints();
+    app.MapReservationEndpoints();
 
     if (args.Contains("--seed-demo-data", StringComparer.OrdinalIgnoreCase))
     {
