@@ -1,4 +1,6 @@
 using HotelPms.Features.Reservations.CreateReservation;
+using HotelPms.Features.Reservations.GetReservation;
+using HotelPms.Features.Reservations.ListReservations;
 
 namespace HotelPms.Features.Reservations;
 
@@ -10,6 +12,8 @@ public static class ReservationEndpoints
             .MapGroup("/api/reservations")
             .WithTags("Reservations");
 
+        group.MapListReservationsEndpoint();
+        group.MapGetReservationEndpoint();
         group.MapCreateReservationEndpoint();
 
         return endpoints;

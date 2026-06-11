@@ -1,7 +1,9 @@
 using HotelPms.Features.Guests.Domain;
 using HotelPms.Features.Guests.Domain.ValueObjects;
+using HotelPms.Features.Reservations.Domain;
 using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Features.RoomTypes.Domain.ValueObjects;
+using HotelPms.Shared.Domain.ValueObjects;
 using HotelPms.Shared.MultiTenancy;
 
 namespace HotelPms.IntegrationTests.Features.Reservations;
@@ -30,5 +32,23 @@ internal static class ReservationTestData
             "Double",
             baseOccupancy,
             maxOccupancy);
+    }
+
+    public static Reservation CreateReservation(
+        TenantId tenantId,
+        Guest guest,
+        RoomType roomType,
+        DateOnly? checkInDate = null,
+        DateOnly? checkOutDate = null,
+        int guestCount = 2)
+    {
+        return Reservation.Create(
+            tenantId,
+            guest.Id,
+            roomType.Id,
+            new DateRange(
+                checkInDate ?? new DateOnly(2026, 7, 1),
+                checkOutDate ?? new DateOnly(2026, 7, 3)),
+            guestCount);
     }
 }

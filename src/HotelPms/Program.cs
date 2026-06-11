@@ -5,6 +5,8 @@ using HotelPms.Features.Guests.ListGuests;
 using HotelPms.Features.Guests.RegisterGuest;
 using HotelPms.Features.Reservations;
 using HotelPms.Features.Reservations.CreateReservation;
+using HotelPms.Features.Reservations.GetReservation;
+using HotelPms.Features.Reservations.ListReservations;
 using HotelPms.Features.Rooms;
 using HotelPms.Features.Rooms.AddRoom;
 using HotelPms.Features.Rooms.GetRoom;
@@ -52,6 +54,8 @@ try
     builder.Services.AddScoped<IValidator<UpdateRoomConditionCommand>, UpdateRoomConditionCommandValidator>();
     builder.Services.AddScoped<CreateReservationHandler>();
     builder.Services.AddScoped<IValidator<CreateReservationCommand>, CreateReservationCommandValidator>();
+    builder.Services.AddScoped<ListReservationsHandler>();
+    builder.Services.AddScoped<GetReservationHandler>();
 
     WebApplication app = builder.Build();
 

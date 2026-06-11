@@ -54,6 +54,8 @@ All tenant-scoped endpoints currently require the `X-Tenant-Id` header.
 | `GET` | `/api/room-types` | List room types |
 | `GET` | `/api/room-types/{roomTypeId}` | Get one room type |
 | `POST` | `/api/room-types` | Create room type |
+| `GET` | `/api/reservations` | List reservations |
+| `GET` | `/api/reservations/{reservationId}` | Get one reservation |
 | `POST` | `/api/reservations` | Create reservation |
 
 ## Local Development

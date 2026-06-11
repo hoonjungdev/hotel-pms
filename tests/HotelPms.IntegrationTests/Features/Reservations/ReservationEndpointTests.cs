@@ -103,6 +103,101 @@ public class ReservationEndpointTests
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Fact]
+    public async Task Get_SameTenantReservations_ReturnsReservationsOrderedByCheckInDate()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Reservation later = ReservationTestData.CreateReservation(
+            tenantId,
+            guest,
+            roomType,
+            checkInDate: new DateOnly(2026, 8, 1),
+            checkOutDate: new DateOnly(2026, 8, 3));
+        Reservation earlier = ReservationTestData.CreateReservation(
+            tenantId,
+            guest,
+            roomType,
+            checkInDate: new DateOnly(2026, 7, 1),
+            checkOutDate: new DateOnly(2026, 7, 3));
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<Guest>().Add(guest);
+            context.Set<RoomType>().Add(roomType);
+            context.Set<Reservation>().AddRange(later, earlier);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        ReservationResponse[]? response = await client.GetFromJsonAsync<ReservationResponse[]>("/api/reservations");
+
+        Assert.NotNull(response);
+        Assert.Equal(2, response.Length);
+        Assert.Equal(earlier.Id.Value, response[0].Id);
+        Assert.Equal(later.Id.Value, response[1].Id);
+    }
+
+    [Fact]
+    public async Task Get_ExistingReservation_ReturnsReservation()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Reservation reservation = ReservationTestData.CreateReservation(tenantId, guest, roomType);
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<Guest>().Add(guest);
+            context.Set<RoomType>().Add(roomType);
+            context.Set<Reservation>().Add(reservation);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        ReservationResponse? response = await client.GetFromJsonAsync<ReservationResponse>(
+            $"/api/reservations/{reservation.Id.Value}");
+
+        Assert.NotNull(response);
+        Assert.Equal(reservation.Id.Value, response.Id);
+        Assert.Equal(guest.Id.Value, response.PrimaryGuestId);
+        Assert.Equal(roomType.Id.Value, response.RoomTypeId);
+        Assert.Equal(new DateOnly(2026, 7, 1), response.CheckInDate);
+        Assert.Equal(new DateOnly(2026, 7, 3), response.CheckOutDate);
+        Assert.Equal(2, response.GuestCount);
+        Assert.Equal(ReservationStatus.Pending.ToString(), response.Status);
+    }
+
+    [Fact]
+    public async Task Get_DifferentTenantReservation_ReturnsNotFound()
+    {
+        var tenantId = TenantId.New();
+        var otherTenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(otherTenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(otherTenantId);
+        Reservation reservation = ReservationTestData.CreateReservation(otherTenantId, guest, roomType);
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<Guest>().Add(guest);
+            context.Set<RoomType>().Add(roomType);
+            context.Set<Reservation>().Add(reservation);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        HttpResponseMessage response = await client.GetAsync($"/api/reservations/{reservation.Id.Value}");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     private WebApplicationFactory<Program> CreateFactory()
     {
         return new WebApplicationFactory<Program>()
