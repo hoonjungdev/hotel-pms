@@ -62,6 +62,26 @@ public class Reservation : AggregateRoot
         return reservation;
     }
 
+    public void Confirm()
+    {
+        if (Status != ReservationStatus.Pending)
+        {
+            throw new InvalidOperationException("Only pending reservations can be confirmed.");
+        }
+
+        Status = ReservationStatus.Confirmed;
+    }
+
+    public void Cancel()
+    {
+        if (Status == ReservationStatus.Cancelled)
+        {
+            throw new InvalidOperationException("Reservation is already cancelled.");
+        }
+
+        Status = ReservationStatus.Cancelled;
+    }
+
     private static void EnsureValidTenantId(TenantId tenantId)
     {
         if (tenantId.Value == Guid.Empty)

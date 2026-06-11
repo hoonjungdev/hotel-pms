@@ -101,4 +101,72 @@ public class ReservationTests
                 new DateRange(new DateOnly(2026, 7, 1), new DateOnly(2026, 7, 3)),
                 guestCount: 0));
     }
+
+    [Fact]
+    public void Confirm_PendingReservation_MarksReservationConfirmed()
+    {
+        Reservation reservation = CreateReservation();
+
+        reservation.Confirm();
+
+        Assert.Equal(ReservationStatus.Confirmed, reservation.Status);
+    }
+
+    [Fact]
+    public void Confirm_ConfirmedReservation_ThrowsException()
+    {
+        Reservation reservation = CreateReservation();
+        reservation.Confirm();
+
+        Assert.Throws<InvalidOperationException>(reservation.Confirm);
+    }
+
+    [Fact]
+    public void Confirm_CancelledReservation_ThrowsException()
+    {
+        Reservation reservation = CreateReservation();
+        reservation.Cancel();
+
+        Assert.Throws<InvalidOperationException>(reservation.Confirm);
+    }
+
+    [Fact]
+    public void Cancel_PendingReservation_MarksReservationCancelled()
+    {
+        Reservation reservation = CreateReservation();
+
+        reservation.Cancel();
+
+        Assert.Equal(ReservationStatus.Cancelled, reservation.Status);
+    }
+
+    [Fact]
+    public void Cancel_ConfirmedReservation_MarksReservationCancelled()
+    {
+        Reservation reservation = CreateReservation();
+        reservation.Confirm();
+
+        reservation.Cancel();
+
+        Assert.Equal(ReservationStatus.Cancelled, reservation.Status);
+    }
+
+    [Fact]
+    public void Cancel_CancelledReservation_ThrowsException()
+    {
+        Reservation reservation = CreateReservation();
+        reservation.Cancel();
+
+        Assert.Throws<InvalidOperationException>(reservation.Cancel);
+    }
+
+    private static Reservation CreateReservation()
+    {
+        return Reservation.Create(
+            TenantId.New(),
+            GuestId.New(),
+            RoomTypeId.New(),
+            new DateRange(new DateOnly(2026, 7, 1), new DateOnly(2026, 7, 3)),
+            guestCount: 2);
+    }
 }

@@ -198,6 +198,173 @@ public class ReservationEndpointTests
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Fact]
+    public async Task PostConfirm_PendingReservation_ReturnsConfirmedReservation()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Reservation reservation = ReservationTestData.CreateReservation(tenantId, guest, roomType);
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<Guest>().Add(guest);
+            context.Set<RoomType>().Add(roomType);
+            context.Set<Reservation>().Add(reservation);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        HttpResponseMessage response = await client.PostAsync($"/api/reservations/{reservation.Id.Value}/confirm", null);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        ReservationResponse? body = await response.Content.ReadFromJsonAsync<ReservationResponse>();
+
+        Assert.NotNull(body);
+        Assert.Equal(reservation.Id.Value, body.Id);
+        Assert.Equal(ReservationStatus.Confirmed.ToString(), body.Status);
+
+        await using HotelDbContext restoredContext = _fixture.CreateDbContext();
+        Reservation restoredReservation = await restoredContext.Set<Reservation>()
+            .SingleAsync(candidate => candidate.Id == reservation.Id);
+
+        Assert.Equal(ReservationStatus.Confirmed, restoredReservation.Status);
+    }
+
+    [Fact]
+    public async Task PostConfirm_DifferentTenantReservation_ReturnsNotFound()
+    {
+        var tenantId = TenantId.New();
+        var otherTenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(otherTenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(otherTenantId);
+        Reservation reservation = ReservationTestData.CreateReservation(otherTenantId, guest, roomType);
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<Guest>().Add(guest);
+            context.Set<RoomType>().Add(roomType);
+            context.Set<Reservation>().Add(reservation);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        HttpResponseMessage response = await client.PostAsync($"/api/reservations/{reservation.Id.Value}/confirm", null);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PostConfirm_CancelledReservation_ReturnsBadRequest()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Reservation reservation = ReservationTestData.CreateReservation(tenantId, guest, roomType);
+        reservation.Cancel();
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<Guest>().Add(guest);
+            context.Set<RoomType>().Add(roomType);
+            context.Set<Reservation>().Add(reservation);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        HttpResponseMessage response = await client.PostAsync($"/api/reservations/{reservation.Id.Value}/confirm", null);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PostCancel_ConfirmedReservation_ReturnsCancelledReservation()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Reservation reservation = ReservationTestData.CreateReservation(tenantId, guest, roomType);
+        reservation.Confirm();
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<Guest>().Add(guest);
+            context.Set<RoomType>().Add(roomType);
+            context.Set<Reservation>().Add(reservation);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        HttpResponseMessage response = await client.PostAsync($"/api/reservations/{reservation.Id.Value}/cancel", null);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        ReservationResponse? body = await response.Content.ReadFromJsonAsync<ReservationResponse>();
+
+        Assert.NotNull(body);
+        Assert.Equal(reservation.Id.Value, body.Id);
+        Assert.Equal(ReservationStatus.Cancelled.ToString(), body.Status);
+    }
+
+    [Fact]
+    public async Task PostCancel_DifferentTenantReservation_ReturnsNotFound()
+    {
+        var tenantId = TenantId.New();
+        var otherTenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(otherTenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(otherTenantId);
+        Reservation reservation = ReservationTestData.CreateReservation(otherTenantId, guest, roomType);
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<Guest>().Add(guest);
+            context.Set<RoomType>().Add(roomType);
+            context.Set<Reservation>().Add(reservation);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        HttpResponseMessage response = await client.PostAsync($"/api/reservations/{reservation.Id.Value}/cancel", null);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PostCancel_CancelledReservation_ReturnsBadRequest()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Reservation reservation = ReservationTestData.CreateReservation(tenantId, guest, roomType);
+        reservation.Cancel();
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<Guest>().Add(guest);
+            context.Set<RoomType>().Add(roomType);
+            context.Set<Reservation>().Add(reservation);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        HttpResponseMessage response = await client.PostAsync($"/api/reservations/{reservation.Id.Value}/cancel", null);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     private WebApplicationFactory<Program> CreateFactory()
     {
         return new WebApplicationFactory<Program>()
