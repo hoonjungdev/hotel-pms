@@ -318,3 +318,17 @@ tests/HotelPms.IntegrationTests/Features/{FeatureName}/{UseCaseName}/
 - 영어 필수 — 해외 채용 담당자나 클라이언트가 git log를 볼 때 바로 이해할 수 있어야 합니다. 한국어 커밋은 포트폴리오로서의 가치를 떨어뜨립니다.
 - Conventional Commits — 업계 표준이고, 커밋 히스토리만 봐도 변경의 성격(기능 추가/버그 수정/리팩토링)이 한눈에 보입니다. 포트폴리오에서 "이 사람은 체계적으로 일한다"는 인상을 줍니다.
 - Imperative mood — Git 자체가 이 스타일을 사용하고(Merge branch...), 대부분의 오픈소스 프로젝트가 이 관행을 따릅니다.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and PRDs are tracked in GitHub Issues for `hoonjungdev/hotel-pms`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The repo uses the default five-label triage vocabulary. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+This is a single-context repo with root-level domain docs. See `docs/agents/domain.md`.
