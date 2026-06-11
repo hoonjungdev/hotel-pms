@@ -4,6 +4,7 @@ using HotelPms.Features.Guests.Domain;
 using HotelPms.Features.Reservations;
 using HotelPms.Features.Reservations.CreateReservation;
 using HotelPms.Features.Reservations.Domain;
+using HotelPms.Features.Rooms.Domain;
 using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Infrastructure.Database;
 using HotelPms.IntegrationTests.Infrastructure;
@@ -33,6 +34,7 @@ public class ReservationEndpointTests
         var tenantId = TenantId.New();
         Guest guest = ReservationTestData.CreateGuest(tenantId);
         RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Room room = ReservationTestData.CreateRoom(tenantId, roomType, "A101");
         var request = new CreateReservationRequest(
             guest.Id.Value,
             roomType.Id.Value,
@@ -44,6 +46,7 @@ public class ReservationEndpointTests
         {
             context.Set<Guest>().Add(guest);
             context.Set<RoomType>().Add(roomType);
+            context.Set<Room>().Add(room);
             await context.SaveChangesAsync();
         }
 
@@ -92,6 +95,43 @@ public class ReservationEndpointTests
         {
             context.Set<Guest>().Add(guest);
             context.Set<RoomType>().Add(roomType);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/reservations", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_OverlappingReservationConsumesOnlyRoom_ReturnsBadRequest()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Room room = ReservationTestData.CreateRoom(tenantId, roomType, "A101");
+        Reservation existingReservation = ReservationTestData.CreateReservation(
+            tenantId,
+            guest,
+            roomType,
+            checkInDate: new DateOnly(2026, 7, 1),
+            checkOutDate: new DateOnly(2026, 7, 3));
+        var request = new CreateReservationRequest(
+            guest.Id.Value,
+            roomType.Id.Value,
+            new DateOnly(2026, 7, 2),
+            new DateOnly(2026, 7, 4),
+            GuestCount: 2);
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<Guest>().Add(guest);
+            context.Set<RoomType>().Add(roomType);
+            context.Set<Room>().Add(room);
+            context.Set<Reservation>().Add(existingReservation);
             await context.SaveChangesAsync();
         }
 

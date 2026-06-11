@@ -1,6 +1,8 @@
 using HotelPms.Features.Guests.Domain;
 using HotelPms.Features.Guests.Domain.ValueObjects;
 using HotelPms.Features.Reservations.Domain;
+using HotelPms.Features.Rooms.Domain;
+using HotelPms.Features.Rooms.Domain.ValueObjects;
 using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Features.RoomTypes.Domain.ValueObjects;
 using HotelPms.Shared.Domain.ValueObjects;
@@ -32,6 +34,11 @@ internal static class ReservationTestData
             "Double",
             baseOccupancy,
             maxOccupancy);
+    }
+
+    public static Room CreateRoom(TenantId tenantId, RoomType roomType, string number)
+    {
+        return Room.Create(tenantId, roomType.Id, RoomNumber.Create(number));
     }
 
     public static Reservation CreateReservation(

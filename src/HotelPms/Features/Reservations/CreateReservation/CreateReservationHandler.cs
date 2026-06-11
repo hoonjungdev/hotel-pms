@@ -2,6 +2,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using HotelPms.Features.Guests.Domain;
 using HotelPms.Features.Reservations.Domain;
+using HotelPms.Features.Rooms.Domain;
 using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Infrastructure.Database;
 using HotelPms.Shared.Domain.ValueObjects;
@@ -52,6 +53,34 @@ public class CreateReservationHandler(HotelDbContext context, IValidator<CreateR
         }
 
         var stayPeriod = new DateRange(command.CheckInDate, command.CheckOutDate);
+        int availableRoomCount = await context.Set<Room>()
+            .CountAsync(
+                room =>
+                    room.TenantId == command.TenantId &&
+                    room.RoomTypeId == command.RoomTypeId &&
+                    room.Condition != RoomCondition.OutOfService,
+                cancellationToken);
+
+        int overlappingReservationCount = await context.Set<Reservation>()
+            .CountAsync(
+                reservation =>
+                    reservation.TenantId == command.TenantId &&
+                    reservation.RoomTypeId == command.RoomTypeId &&
+                    reservation.Status != ReservationStatus.Cancelled &&
+                    reservation.StayPeriod.Start < stayPeriod.End &&
+                    stayPeriod.Start < reservation.StayPeriod.End,
+                cancellationToken);
+
+        if (overlappingReservationCount >= availableRoomCount)
+        {
+            throw new ValidationException(
+            [
+                new ValidationFailure(
+                    nameof(CreateReservationCommand.RoomTypeId),
+                    "No rooms are available for the requested stay period.")
+            ]);
+        }
+
         var reservation = Reservation.Create(
             command.TenantId,
             command.PrimaryGuestId,

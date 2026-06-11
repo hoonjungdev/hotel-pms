@@ -2,6 +2,7 @@ using FluentValidation;
 using HotelPms.Features.Guests.Domain;
 using HotelPms.Features.Reservations.CreateReservation;
 using HotelPms.Features.Reservations.Domain;
+using HotelPms.Features.Rooms.Domain;
 using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Infrastructure.Database;
 using HotelPms.IntegrationTests.Infrastructure;
@@ -26,6 +27,7 @@ public class CreateReservationHandlerTests
         var tenantId = TenantId.New();
         Guest guest = ReservationTestData.CreateGuest(tenantId);
         RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Room room = ReservationTestData.CreateRoom(tenantId, roomType, "A101");
         var command = new CreateReservationCommand(
             tenantId,
             guest.Id,
@@ -40,6 +42,7 @@ public class CreateReservationHandlerTests
         {
             context.Set<Guest>().Add(guest);
             context.Set<RoomType>().Add(roomType);
+            context.Set<Room>().Add(room);
             await context.SaveChangesAsync();
 
             var handler = new CreateReservationHandler(context, new CreateReservationCommandValidator());
@@ -138,6 +141,173 @@ public class CreateReservationHandlerTests
         var handler = new CreateReservationHandler(context, new CreateReservationCommandValidator());
 
         await Assert.ThrowsAsync<ValidationException>(async () => await handler.HandleAsync(command));
+    }
+
+    [Fact]
+    public async Task HandleAsync_OverlappingReservationConsumesOnlyRoom_ThrowsValidationException()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Room room = ReservationTestData.CreateRoom(tenantId, roomType, "A101");
+        Reservation existingReservation = ReservationTestData.CreateReservation(
+            tenantId,
+            guest,
+            roomType,
+            checkInDate: new DateOnly(2026, 7, 1),
+            checkOutDate: new DateOnly(2026, 7, 3));
+        var command = new CreateReservationCommand(
+            tenantId,
+            guest.Id,
+            roomType.Id,
+            new DateOnly(2026, 7, 2),
+            new DateOnly(2026, 7, 4),
+            GuestCount: 2);
+
+        await using HotelDbContext context = _fixture.CreateDbContext();
+        context.Set<Guest>().Add(guest);
+        context.Set<RoomType>().Add(roomType);
+        context.Set<Room>().Add(room);
+        context.Set<Reservation>().Add(existingReservation);
+        await context.SaveChangesAsync();
+
+        var handler = new CreateReservationHandler(context, new CreateReservationCommandValidator());
+
+        await Assert.ThrowsAsync<ValidationException>(async () => await handler.HandleAsync(command));
+    }
+
+    [Fact]
+    public async Task HandleAsync_OneOfTwoRoomsConsumedByOverlappingReservation_PersistsReservation()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Room firstRoom = ReservationTestData.CreateRoom(tenantId, roomType, "A101");
+        Room secondRoom = ReservationTestData.CreateRoom(tenantId, roomType, "A102");
+        Reservation existingReservation = ReservationTestData.CreateReservation(
+            tenantId,
+            guest,
+            roomType,
+            checkInDate: new DateOnly(2026, 7, 1),
+            checkOutDate: new DateOnly(2026, 7, 3));
+        var command = new CreateReservationCommand(
+            tenantId,
+            guest.Id,
+            roomType.Id,
+            new DateOnly(2026, 7, 2),
+            new DateOnly(2026, 7, 4),
+            GuestCount: 2);
+
+        await using HotelDbContext context = _fixture.CreateDbContext();
+        context.Set<Guest>().Add(guest);
+        context.Set<RoomType>().Add(roomType);
+        context.Set<Room>().AddRange(firstRoom, secondRoom);
+        context.Set<Reservation>().Add(existingReservation);
+        await context.SaveChangesAsync();
+
+        var handler = new CreateReservationHandler(context, new CreateReservationCommandValidator());
+
+        CreateReservationResult result = await handler.HandleAsync(command);
+
+        Assert.Equal(ReservationStatus.Pending.ToString(), result.Status);
+    }
+
+    [Fact]
+    public async Task HandleAsync_OutOfServiceRoom_ThrowsValidationException()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Room room = ReservationTestData.CreateRoom(tenantId, roomType, "A101");
+        room.TakeOutOfService();
+        var command = new CreateReservationCommand(
+            tenantId,
+            guest.Id,
+            roomType.Id,
+            new DateOnly(2026, 7, 1),
+            new DateOnly(2026, 7, 3),
+            GuestCount: 2);
+
+        await using HotelDbContext context = _fixture.CreateDbContext();
+        context.Set<Guest>().Add(guest);
+        context.Set<RoomType>().Add(roomType);
+        context.Set<Room>().Add(room);
+        await context.SaveChangesAsync();
+
+        var handler = new CreateReservationHandler(context, new CreateReservationCommandValidator());
+
+        await Assert.ThrowsAsync<ValidationException>(async () => await handler.HandleAsync(command));
+    }
+
+    [Fact]
+    public async Task HandleAsync_CancelledOverlappingReservation_PersistsReservation()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Room room = ReservationTestData.CreateRoom(tenantId, roomType, "A101");
+        Reservation cancelledReservation = ReservationTestData.CreateReservation(
+            tenantId,
+            guest,
+            roomType,
+            checkInDate: new DateOnly(2026, 7, 1),
+            checkOutDate: new DateOnly(2026, 7, 3));
+        cancelledReservation.Cancel();
+        var command = new CreateReservationCommand(
+            tenantId,
+            guest.Id,
+            roomType.Id,
+            new DateOnly(2026, 7, 2),
+            new DateOnly(2026, 7, 4),
+            GuestCount: 2);
+
+        await using HotelDbContext context = _fixture.CreateDbContext();
+        context.Set<Guest>().Add(guest);
+        context.Set<RoomType>().Add(roomType);
+        context.Set<Room>().Add(room);
+        context.Set<Reservation>().Add(cancelledReservation);
+        await context.SaveChangesAsync();
+
+        var handler = new CreateReservationHandler(context, new CreateReservationCommandValidator());
+
+        CreateReservationResult result = await handler.HandleAsync(command);
+
+        Assert.Equal(ReservationStatus.Pending.ToString(), result.Status);
+    }
+
+    [Fact]
+    public async Task HandleAsync_NonOverlappingReservation_PersistsReservation()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Room room = ReservationTestData.CreateRoom(tenantId, roomType, "A101");
+        Reservation existingReservation = ReservationTestData.CreateReservation(
+            tenantId,
+            guest,
+            roomType,
+            checkInDate: new DateOnly(2026, 7, 1),
+            checkOutDate: new DateOnly(2026, 7, 3));
+        var command = new CreateReservationCommand(
+            tenantId,
+            guest.Id,
+            roomType.Id,
+            new DateOnly(2026, 7, 3),
+            new DateOnly(2026, 7, 5),
+            GuestCount: 2);
+
+        await using HotelDbContext context = _fixture.CreateDbContext();
+        context.Set<Guest>().Add(guest);
+        context.Set<RoomType>().Add(roomType);
+        context.Set<Room>().Add(room);
+        context.Set<Reservation>().Add(existingReservation);
+        await context.SaveChangesAsync();
+
+        var handler = new CreateReservationHandler(context, new CreateReservationCommandValidator());
+
+        CreateReservationResult result = await handler.HandleAsync(command);
+
+        Assert.Equal(ReservationStatus.Pending.ToString(), result.Status);
     }
 
     [Fact]
