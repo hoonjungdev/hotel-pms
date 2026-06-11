@@ -12,7 +12,11 @@ public class ListRoomsHandler(HotelDbContext context)
             .Where(room => room.TenantId == query.TenantId)
             .OrderBy(room => room.Number)
             .AsNoTracking()
-            .Select(room => new RoomListItem(room.Id, room.Number.Value, room.Condition.ToString()))
+            .Select(room => new RoomListItem(
+                room.Id,
+                room.RoomTypeId,
+                room.Number.Value,
+                room.Condition.ToString()))
             .ToListAsync(cancellationToken);
     }
 }

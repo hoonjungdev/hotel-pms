@@ -5,6 +5,7 @@ using HotelPms.Features.Rooms.AddRoom;
 using HotelPms.Features.Rooms.Domain;
 using HotelPms.Features.Rooms.Domain.ValueObjects;
 using HotelPms.Features.Rooms.UpdateRoomCondition;
+using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Infrastructure.Database;
 using HotelPms.IntegrationTests.Infrastructure;
 using HotelPms.Shared.MultiTenancy;
@@ -31,7 +32,14 @@ public class RoomEndpointTests
     public async Task Post_ValidRequest_PersistsRoom()
     {
         var tenantId = TenantId.New();
-        var request = new AddRoomRequest(" a101 ");
+        RoomType roomType = RoomTestData.CreateRoomType(tenantId);
+        var request = new AddRoomRequest(roomType.Id.Value, " a101 ");
+
+        await using (HotelDbContext setupContext = _fixture.CreateDbContext())
+        {
+            setupContext.Set<RoomType>().Add(roomType);
+            await setupContext.SaveChangesAsync();
+        }
 
         await using WebApplicationFactory<Program> factory = CreateFactory();
         using HttpClient client = CreateClient(factory, tenantId);
@@ -44,6 +52,7 @@ public class RoomEndpointTests
 
         Assert.NotNull(body);
         Assert.NotEqual(Guid.Empty, body.Id);
+        Assert.Equal(roomType.Id.Value, body.RoomTypeId);
         Assert.Equal("A101", body.Number);
         Assert.Equal(RoomCondition.Clean.ToString(), body.Condition);
 
@@ -51,6 +60,7 @@ public class RoomEndpointTests
         Room room = await context.Set<Room>().SingleAsync(candidate => candidate.Id == new RoomId(body.Id));
 
         Assert.Equal(tenantId, room.TenantId);
+        Assert.Equal(roomType.Id, room.RoomTypeId);
         Assert.Equal("A101", room.Number.Value);
 
         string? location = response.Headers.Location?.ToString();
@@ -67,13 +77,16 @@ public class RoomEndpointTests
     {
         var tenantId = TenantId.New();
         var otherTenantId = TenantId.New();
+        RoomType roomType = RoomTestData.CreateRoomType(tenantId);
+        RoomType otherTenantRoomType = RoomTestData.CreateRoomType(otherTenantId);
 
-        var first = Room.Create(tenantId, RoomNumber.Create("A102"));
-        var second = Room.Create(tenantId, RoomNumber.Create("A101"));
-        var excluded = Room.Create(otherTenantId, RoomNumber.Create("A100"));
+        var first = Room.Create(tenantId, roomType.Id, RoomNumber.Create("A102"));
+        var second = Room.Create(tenantId, roomType.Id, RoomNumber.Create("A101"));
+        var excluded = Room.Create(otherTenantId, otherTenantRoomType.Id, RoomNumber.Create("A100"));
 
         await using (HotelDbContext context = _fixture.CreateDbContext())
         {
+            context.Set<RoomType>().AddRange(roomType, otherTenantRoomType);
             context.Set<Room>().AddRange(first, second, excluded);
             await context.SaveChangesAsync();
         }
@@ -86,7 +99,9 @@ public class RoomEndpointTests
         Assert.NotNull(response);
         Assert.Equal(2, response.Length);
         Assert.Equal("A101", response[0].Number);
+        Assert.Equal(roomType.Id.Value, response[0].RoomTypeId);
         Assert.Equal("A102", response[1].Number);
+        Assert.Equal(roomType.Id.Value, response[1].RoomTypeId);
     }
 
     [Fact]
@@ -94,10 +109,12 @@ public class RoomEndpointTests
     {
         var tenantId = TenantId.New();
         var otherTenantId = TenantId.New();
-        var room = Room.Create(otherTenantId, RoomNumber.Create("A101"));
+        RoomType otherTenantRoomType = RoomTestData.CreateRoomType(otherTenantId);
+        var room = Room.Create(otherTenantId, otherTenantRoomType.Id, RoomNumber.Create("A101"));
 
         await using (HotelDbContext context = _fixture.CreateDbContext())
         {
+            context.Set<RoomType>().Add(otherTenantRoomType);
             context.Set<Room>().Add(room);
             await context.SaveChangesAsync();
         }
@@ -114,10 +131,12 @@ public class RoomEndpointTests
     public async Task PatchCondition_ExistingRoom_PersistsCondition()
     {
         var tenantId = TenantId.New();
-        var room = Room.Create(tenantId, RoomNumber.Create("A101"));
+        RoomType roomType = RoomTestData.CreateRoomType(tenantId);
+        var room = Room.Create(tenantId, roomType.Id, RoomNumber.Create("A101"));
 
         await using (HotelDbContext context = _fixture.CreateDbContext())
         {
+            context.Set<RoomType>().Add(roomType);
             context.Set<Room>().Add(room);
             await context.SaveChangesAsync();
         }

@@ -15,6 +15,7 @@ public class GetRoomHandler(HotelDbContext context)
             .AsNoTracking()
             .Select(room => new RoomDetails(
                 room.Id,
+                room.RoomTypeId,
                 room.Number.Value,
                 room.Condition.ToString()))
             .SingleOrDefaultAsync(cancellationToken);

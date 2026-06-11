@@ -13,6 +13,8 @@ public sealed class RoomTypeConfiguration : IEntityTypeConfiguration<RoomType>
 
         builder.HasKey(roomType => roomType.Id);
 
+        builder.HasAlternateKey(roomType => new { roomType.TenantId, roomType.Id });
+
         builder.Property(roomType => roomType.Id)
             .HasColumnName("id");
 

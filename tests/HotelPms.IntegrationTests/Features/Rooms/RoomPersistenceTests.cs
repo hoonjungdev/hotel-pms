@@ -1,5 +1,6 @@
 using HotelPms.Features.Rooms.Domain;
 using HotelPms.Features.Rooms.Domain.ValueObjects;
+using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Infrastructure.Database;
 using HotelPms.IntegrationTests.Infrastructure;
 using HotelPms.Shared.MultiTenancy;
@@ -20,10 +21,13 @@ public class RoomPersistenceTests
     [Fact]
     public async Task Save_CleanRoom_RestoresRoom()
     {
-        var room = Room.Create(TenantId.New(), RoomNumber.Create(" a101  "));
+        var tenantId = TenantId.New();
+        RoomType roomType = RoomTestData.CreateRoomType(tenantId);
+        var room = Room.Create(tenantId, roomType.Id, RoomNumber.Create(" a101  "));
 
         await using (HotelDbContext context = _fixture.CreateDbContext())
         {
+            context.Set<RoomType>().Add(roomType);
             context.Set<Room>().Add(room);
             await context.SaveChangesAsync();
         }
@@ -34,6 +38,7 @@ public class RoomPersistenceTests
 
             Assert.Equal(room.Id, restored.Id);
             Assert.Equal(room.TenantId, restored.TenantId);
+            Assert.Equal(roomType.Id, restored.RoomTypeId);
             Assert.Equal("A101", restored.Number.Value);
             Assert.Equal(room.Condition, restored.Condition);
         }

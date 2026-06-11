@@ -1,6 +1,7 @@
 using HotelPms.Features.Rooms.Domain;
 using HotelPms.Features.Rooms.Domain.ValueObjects;
 using HotelPms.Features.Rooms.UpdateRoomCondition;
+using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Infrastructure.Database;
 using HotelPms.IntegrationTests.Infrastructure;
 using HotelPms.Shared.MultiTenancy;
@@ -22,10 +23,12 @@ public class UpdateRoomConditionHandlerTests
     public async Task HandleAsync_CleanRoomToDirty_PersistsDirtyCondition()
     {
         var tenantId = TenantId.New();
-        var room = Room.Create(tenantId, RoomNumber.Create("a101"));
+        RoomType roomType = RoomTestData.CreateRoomType(tenantId);
+        var room = Room.Create(tenantId, roomType.Id, RoomNumber.Create("a101"));
 
         await using (HotelDbContext context = _fixture.CreateDbContext())
         {
+            context.Set<RoomType>().Add(roomType);
             context.Set<Room>().Add(room);
             await context.SaveChangesAsync();
         }
@@ -56,10 +59,12 @@ public class UpdateRoomConditionHandlerTests
         var tenantId1 = TenantId.New();
         var tenantId2 = TenantId.New();
 
-        var room = Room.Create(tenantId1, RoomNumber.Create("a101"));
+        RoomType roomType = RoomTestData.CreateRoomType(tenantId1);
+        var room = Room.Create(tenantId1, roomType.Id, RoomNumber.Create("a101"));
 
         await using (HotelDbContext context = _fixture.CreateDbContext())
         {
+            context.Set<RoomType>().Add(roomType);
             context.Set<Room>().Add(room);
             await context.SaveChangesAsync();
         }

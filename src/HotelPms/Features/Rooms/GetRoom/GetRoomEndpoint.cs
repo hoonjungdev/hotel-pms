@@ -33,6 +33,6 @@ internal static class GetRoomEndpoint
 
     private static RoomResponse ToResponse(RoomDetails room)
     {
-        return new RoomResponse(room.Id.Value, room.Number, room.Condition);
+        return new RoomResponse(room.Id.Value, room.RoomTypeId.Value, room.Number, room.Condition);
     }
 }

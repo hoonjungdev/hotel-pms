@@ -15,21 +15,44 @@ public static class DemoSeedData
 
     public static async Task SeedAsync(HotelDbContext context, CancellationToken cancellationToken = default)
     {
-        await SeedRoomTypesAsync(context, cancellationToken);
-        await SeedRoomsAsync(context, cancellationToken);
+        Dictionary<string, RoomTypeId> roomTypeIds = await SeedRoomTypesAsync(context, cancellationToken);
+        await SeedRoomsAsync(context, roomTypeIds, cancellationToken);
         await SeedGuestsAsync(context, cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    private static async Task SeedRoomTypesAsync(HotelDbContext context, CancellationToken cancellationToken)
+    private static async Task<Dictionary<string, RoomTypeId>> SeedRoomTypesAsync(
+        HotelDbContext context,
+        CancellationToken cancellationToken)
     {
-        await AddRoomTypeIfMissingAsync(context, RoomTypeCode.Create("SGL"), "Single", 1, 1, cancellationToken);
-        await AddRoomTypeIfMissingAsync(context, RoomTypeCode.Create("DBL"), "Double", 2, 3, cancellationToken);
-        await AddRoomTypeIfMissingAsync(context, RoomTypeCode.Create("FAM"), "Family", 2, 5, cancellationToken);
+        return new Dictionary<string, RoomTypeId>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["SGL"] = (await GetOrAddRoomTypeAsync(
+                context,
+                RoomTypeCode.Create("SGL"),
+                "Single",
+                1,
+                1,
+                cancellationToken)).Id,
+            ["DBL"] = (await GetOrAddRoomTypeAsync(
+                context,
+                RoomTypeCode.Create("DBL"),
+                "Double",
+                2,
+                3,
+                cancellationToken)).Id,
+            ["FAM"] = (await GetOrAddRoomTypeAsync(
+                context,
+                RoomTypeCode.Create("FAM"),
+                "Family",
+                2,
+                5,
+                cancellationToken)).Id
+        };
     }
 
-    private static async Task AddRoomTypeIfMissingAsync(
+    private static async Task<RoomType> GetOrAddRoomTypeAsync(
         HotelDbContext context,
         RoomTypeCode code,
         string name,
@@ -37,25 +60,34 @@ public static class DemoSeedData
         int maxOccupancy,
         CancellationToken cancellationToken)
     {
-        bool exists = await context.Set<RoomType>()
-            .AnyAsync(roomType => roomType.TenantId == TenantId && roomType.Code == code, cancellationToken);
+        RoomType? existing = await context.Set<RoomType>()
+            .SingleOrDefaultAsync(roomType => roomType.TenantId == TenantId && roomType.Code == code, cancellationToken);
 
-        if (!exists)
+        if (existing is not null)
         {
-            context.Set<RoomType>().Add(RoomType.Create(TenantId, code, name, baseOccupancy, maxOccupancy));
+            return existing;
         }
+
+        var roomType = RoomType.Create(TenantId, code, name, baseOccupancy, maxOccupancy);
+        context.Set<RoomType>().Add(roomType);
+
+        return roomType;
     }
 
-    private static async Task SeedRoomsAsync(HotelDbContext context, CancellationToken cancellationToken)
+    private static async Task SeedRoomsAsync(
+        HotelDbContext context,
+        IReadOnlyDictionary<string, RoomTypeId> roomTypeIds,
+        CancellationToken cancellationToken)
     {
-        await AddRoomIfMissingAsync(context, RoomNumber.Create("101"), cancellationToken);
-        await AddRoomIfMissingAsync(context, RoomNumber.Create("102"), cancellationToken);
-        await AddRoomIfMissingAsync(context, RoomNumber.Create("201"), cancellationToken);
-        await AddRoomIfMissingAsync(context, RoomNumber.Create("202"), cancellationToken);
+        await AddRoomIfMissingAsync(context, roomTypeIds["SGL"], RoomNumber.Create("101"), cancellationToken);
+        await AddRoomIfMissingAsync(context, roomTypeIds["SGL"], RoomNumber.Create("102"), cancellationToken);
+        await AddRoomIfMissingAsync(context, roomTypeIds["DBL"], RoomNumber.Create("201"), cancellationToken);
+        await AddRoomIfMissingAsync(context, roomTypeIds["FAM"], RoomNumber.Create("202"), cancellationToken);
     }
 
     private static async Task AddRoomIfMissingAsync(
         HotelDbContext context,
+        RoomTypeId roomTypeId,
         RoomNumber number,
         CancellationToken cancellationToken)
     {
@@ -64,7 +96,7 @@ public static class DemoSeedData
 
         if (!exists)
         {
-            context.Set<Room>().Add(Room.Create(TenantId, number));
+            context.Set<Room>().Add(Room.Create(TenantId, roomTypeId, number));
         }
     }
 

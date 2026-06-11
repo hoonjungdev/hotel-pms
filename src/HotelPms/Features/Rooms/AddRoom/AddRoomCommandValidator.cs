@@ -10,6 +10,10 @@ public sealed class AddRoomCommandValidator : AbstractValidator<AddRoomCommand>
             .NotEmpty()
             .WithMessage("Tenant ID must have value.");
 
+        RuleFor(command => command.RoomTypeId.Value)
+            .NotEmpty()
+            .WithMessage("Room type ID must have value.");
+
         RuleFor(command => command.Number)
             .NotEmpty()
             .WithMessage("A room number must be provided.")

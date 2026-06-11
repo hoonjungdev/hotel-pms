@@ -49,7 +49,7 @@ All tenant-scoped endpoints currently require the `X-Tenant-Id` header.
 | `POST` | `/api/guests` | Register guest |
 | `GET` | `/api/rooms` | List rooms |
 | `GET` | `/api/rooms/{roomId}` | Get one room |
-| `POST` | `/api/rooms` | Add room |
+| `POST` | `/api/rooms` | Add physical room for a room type |
 | `PATCH` | `/api/rooms/{roomId}/condition` | Update room condition |
 | `GET` | `/api/room-types` | List room types |
 | `GET` | `/api/room-types/{roomTypeId}` | Get one room type |
@@ -104,6 +104,15 @@ curl -X POST http://localhost:5216/api/room-types \
   -H "Content-Type: application/json" \
   -H "X-Tenant-Id: 11111111-1111-1111-1111-111111111111" \
   -d '{"code":"DBL","name":"Double","baseOccupancy":2,"maxOccupancy":3}'
+```
+
+Add a physical room for a room type:
+
+```bash
+curl -X POST http://localhost:5216/api/rooms \
+  -H "Content-Type: application/json" \
+  -H "X-Tenant-Id: 11111111-1111-1111-1111-111111111111" \
+  -d '{"roomTypeId":"replace-with-room-type-id","number":"101"}'
 ```
 
 Register a guest:

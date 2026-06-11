@@ -1,4 +1,5 @@
 using FluentValidation;
+using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Shared.Api;
 using HotelPms.Shared.MultiTenancy;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -22,7 +23,10 @@ internal static class AddRoomEndpoint
         AddRoomHandler handler,
         CancellationToken cancellationToken)
     {
-        var command = new AddRoomCommand(new TenantId(tenantId), request.Number);
+        var command = new AddRoomCommand(
+            new TenantId(tenantId),
+            new RoomTypeId(request.RoomTypeId),
+            request.Number);
 
         try
         {
@@ -40,6 +44,7 @@ internal static class AddRoomEndpoint
     {
         return new RoomResponse(
             result.Id.Value,
+            result.RoomTypeId.Value,
             result.Number,
             result.Condition);
     }
