@@ -2,6 +2,7 @@ using HotelPms.Features.Rooms.Domain;
 using HotelPms.Features.Rooms.Domain.ValueObjects;
 using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Features.RoomTypes.Domain.ValueObjects;
+using HotelPms.Shared.Domain.ValueObjects;
 using HotelPms.Shared.MultiTenancy;
 
 namespace HotelPms.IntegrationTests.Features.Rooms;
@@ -17,7 +18,8 @@ internal static class RoomTestData
             RoomTypeCode.Create(code),
             "Double",
             baseOccupancy: 2,
-            maxOccupancy: 3);
+            maxOccupancy: 3,
+            new Money(120_000, Currency.KRW));
     }
 
     public static Room CreateRoom(TenantId tenantId, RoomType roomType, string number)
