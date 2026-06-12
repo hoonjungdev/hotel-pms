@@ -63,6 +63,10 @@ namespace HotelPms.Infrastructure.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<Guid?>("AssignedRoomId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("assigned_room_id");
+
                     b.Property<int>("GuestCount")
                         .HasColumnType("integer")
                         .HasColumnName("guest_count");
@@ -98,10 +102,29 @@ namespace HotelPms.Infrastructure.Database.Migrations
                                 .HasColumnName("check_in_date");
                         });
 
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "TotalAmount", "HotelPms.Features.Reservations.Domain.Reservation.TotalAmount#Money", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<decimal>("Amount")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("numeric(18,2)")
+                                .HasColumnName("total_amount");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("character varying(3)")
+                                .HasColumnName("total_currency");
+                        });
+
                     b.HasKey("Id");
 
                     b.HasIndex("TenantId")
                         .HasDatabaseName("ix_reservations_tenant_id");
+
+                    b.HasIndex("TenantId", "AssignedRoomId")
+                        .HasDatabaseName("ix_reservations_tenant_id_assigned_room_id");
 
                     b.HasIndex("TenantId", "PrimaryGuestId");
 
@@ -140,6 +163,22 @@ namespace HotelPms.Infrastructure.Database.Migrations
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "BaseNightlyRate", "HotelPms.Features.RoomTypes.Domain.RoomType.BaseNightlyRate#Money", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<decimal>("Amount")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("numeric(18,2)")
+                                .HasColumnName("base_nightly_rate_amount");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("character varying(3)")
+                                .HasColumnName("base_nightly_rate_currency");
+                        });
 
                     b.HasKey("Id");
 
@@ -386,6 +425,12 @@ namespace HotelPms.Infrastructure.Database.Migrations
 
             modelBuilder.Entity("HotelPms.Features.Reservations.Domain.Reservation", b =>
                 {
+                    b.HasOne("HotelPms.Features.Rooms.Domain.Room", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId", "AssignedRoomId")
+                        .HasPrincipalKey("TenantId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("HotelPms.Features.Guests.Domain.Guest", null)
                         .WithMany()
                         .HasForeignKey("TenantId", "PrimaryGuestId")
