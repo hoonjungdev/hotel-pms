@@ -43,6 +43,22 @@ public sealed class RoomTypeConfiguration : IEntityTypeConfiguration<RoomType>
             .HasColumnName("max_occupancy")
             .IsRequired();
 
+        builder.ComplexProperty(
+            roomType => roomType.BaseNightlyRate,
+            money =>
+            {
+                money.Property(rate => rate.Amount)
+                    .HasColumnName("base_nightly_rate_amount")
+                    .HasPrecision(18, 2)
+                    .IsRequired();
+
+                money.Property(rate => rate.Currency)
+                    .HasColumnName("base_nightly_rate_currency")
+                    .HasConversion<string>()
+                    .HasMaxLength(3)
+                    .IsRequired();
+            });
+
         builder.HasIndex(roomType => new { roomType.TenantId, roomType.Code })
             .IsUnique()
             .HasDatabaseName("ix_room_types_tenant_id_code");

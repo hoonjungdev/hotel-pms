@@ -20,6 +20,7 @@ public class GetReservationHandler(HotelDbContext context)
                 reservation.StayPeriod.Start,
                 reservation.StayPeriod.End,
                 reservation.GuestCount,
+                reservation.TotalAmount,
                 reservation.Status.ToString()))
             .SingleOrDefaultAsync(cancellationToken);
     }

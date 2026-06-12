@@ -46,6 +46,22 @@ public sealed class ReservationConfiguration : IEntityTypeConfiguration<Reservat
             .HasColumnName("guest_count")
             .IsRequired();
 
+        builder.ComplexProperty(
+            reservation => reservation.TotalAmount,
+            money =>
+            {
+                money.Property(amount => amount.Amount)
+                    .HasColumnName("total_amount")
+                    .HasPrecision(18, 2)
+                    .IsRequired();
+
+                money.Property(amount => amount.Currency)
+                    .HasColumnName("total_currency")
+                    .HasConversion<string>()
+                    .HasMaxLength(3)
+                    .IsRequired();
+            });
+
         builder.Property(reservation => reservation.Status)
             .HasColumnName("status")
             .HasConversion<string>()

@@ -4,6 +4,7 @@ using HotelPms.Features.Reservations.ListReservations;
 using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Infrastructure.Database;
 using HotelPms.IntegrationTests.Infrastructure;
+using HotelPms.Shared.Domain.ValueObjects;
 using HotelPms.Shared.MultiTenancy;
 
 namespace HotelPms.IntegrationTests.Features.Reservations.ListReservations;
@@ -55,6 +56,7 @@ public class ListReservationsHandlerTests
             Assert.Equal(2, reservations.Count);
             Assert.Equal(earlier.Id, reservations[0].Id);
             Assert.Equal(later.Id, reservations[1].Id);
+            Assert.Equal(new Money(240_000, Currency.KRW), reservations[0].TotalAmount);
         }
     }
 

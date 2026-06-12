@@ -6,6 +6,7 @@ using HotelPms.Features.Rooms.Domain;
 using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Infrastructure.Database;
 using HotelPms.IntegrationTests.Infrastructure;
+using HotelPms.Shared.Domain.ValueObjects;
 using HotelPms.Shared.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 
@@ -61,11 +62,13 @@ public class CreateReservationHandlerTests
             Assert.Equal(new DateOnly(2026, 7, 1), reservation.StayPeriod.Start);
             Assert.Equal(new DateOnly(2026, 7, 3), reservation.StayPeriod.End);
             Assert.Equal(2, reservation.GuestCount);
+            Assert.Equal(new Money(240_000, Currency.KRW), reservation.TotalAmount);
             Assert.Equal(ReservationStatus.Pending, reservation.Status);
         }
 
         Assert.Equal(guest.Id, result.PrimaryGuestId);
         Assert.Equal(roomType.Id, result.RoomTypeId);
+        Assert.Equal(new Money(240_000, Currency.KRW), result.TotalAmount);
         Assert.Equal("Pending", result.Status);
     }
 
@@ -210,6 +213,7 @@ public class CreateReservationHandlerTests
         CreateReservationResult result = await handler.HandleAsync(command);
 
         Assert.Equal(ReservationStatus.Pending.ToString(), result.Status);
+        Assert.Equal(new Money(240_000, Currency.KRW), result.TotalAmount);
     }
 
     [Fact]
@@ -326,4 +330,5 @@ public class CreateReservationHandlerTests
 
         await Assert.ThrowsAsync<ValidationException>(async () => await handler.HandleAsync(command));
     }
+
 }

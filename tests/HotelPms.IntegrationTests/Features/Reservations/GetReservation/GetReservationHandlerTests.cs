@@ -4,6 +4,7 @@ using HotelPms.Features.Reservations.GetReservation;
 using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Infrastructure.Database;
 using HotelPms.IntegrationTests.Infrastructure;
+using HotelPms.Shared.Domain.ValueObjects;
 using HotelPms.Shared.MultiTenancy;
 
 namespace HotelPms.IntegrationTests.Features.Reservations.GetReservation;
@@ -48,6 +49,7 @@ public class GetReservationHandlerTests
             Assert.Equal(new DateOnly(2026, 7, 1), details.CheckInDate);
             Assert.Equal(new DateOnly(2026, 7, 3), details.CheckOutDate);
             Assert.Equal(2, details.GuestCount);
+            Assert.Equal(new Money(240_000, Currency.KRW), details.TotalAmount);
             Assert.Equal(ReservationStatus.Pending.ToString(), details.Status);
         }
     }

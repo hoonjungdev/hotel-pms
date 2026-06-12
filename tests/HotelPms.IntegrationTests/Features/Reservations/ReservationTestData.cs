@@ -1,5 +1,6 @@
 using HotelPms.Features.Guests.Domain;
 using HotelPms.Features.Guests.Domain.ValueObjects;
+using HotelPms.Features.Pricing.Domain;
 using HotelPms.Features.Reservations.Domain;
 using HotelPms.Features.Rooms.Domain;
 using HotelPms.Features.Rooms.Domain.ValueObjects;
@@ -33,7 +34,8 @@ internal static class ReservationTestData
             RoomTypeCode.Create(code),
             "Double",
             baseOccupancy,
-            maxOccupancy);
+            maxOccupancy,
+            new Money(120_000, Currency.KRW));
     }
 
     public static Room CreateRoom(TenantId tenantId, RoomType roomType, string number)
@@ -49,13 +51,16 @@ internal static class ReservationTestData
         DateOnly? checkOutDate = null,
         int guestCount = 2)
     {
+        var stayPeriod = new DateRange(
+            checkInDate ?? new DateOnly(2026, 7, 1),
+            checkOutDate ?? new DateOnly(2026, 7, 3));
+
         return Reservation.Create(
             tenantId,
             guest.Id,
             roomType.Id,
-            new DateRange(
-                checkInDate ?? new DateOnly(2026, 7, 1),
-                checkOutDate ?? new DateOnly(2026, 7, 3)),
-            guestCount);
+            stayPeriod,
+            guestCount,
+            PriceCalculator.CalculateStayTotal(roomType.BaseNightlyRate, stayPeriod));
     }
 }

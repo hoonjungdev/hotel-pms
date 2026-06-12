@@ -6,6 +6,7 @@ using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Features.RoomTypes.Domain.ValueObjects;
 using HotelPms.Infrastructure.Database;
 using HotelPms.IntegrationTests.Infrastructure;
+using HotelPms.Shared.Domain.ValueObjects;
 using HotelPms.Shared.MultiTenancy;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -30,7 +31,7 @@ public class RoomTypeEndpointTests
     public async Task Post_ValidRequest_PersistsRoomType()
     {
         var tenantId = TenantId.New();
-        var request = new CreateRoomTypeRequest(" dbl ", "  Double  ", 2, 4);
+        var request = new CreateRoomTypeRequest(" dbl ", "  Double  ", 2, 4, 120_000, "KRW");
 
         await using WebApplicationFactory<Program> factory = CreateFactory();
         using HttpClient client = CreateClient(factory, tenantId);
@@ -47,6 +48,8 @@ public class RoomTypeEndpointTests
         Assert.Equal("Double", body.Name);
         Assert.Equal(2, body.BaseOccupancy);
         Assert.Equal(4, body.MaxOccupancy);
+        Assert.Equal(120_000, body.BaseNightlyRateAmount);
+        Assert.Equal("KRW", body.BaseNightlyRateCurrency);
 
         await using HotelDbContext context = _fixture.CreateDbContext();
         RoomType roomType = await context.Set<RoomType>().SingleAsync(candidate => candidate.Id == new RoomTypeId(body.Id));
@@ -54,6 +57,7 @@ public class RoomTypeEndpointTests
         Assert.Equal(tenantId, roomType.TenantId);
         Assert.Equal("DBL", roomType.Code.Value);
         Assert.Equal("Double", roomType.Name);
+        Assert.Equal(new Money(120_000, Currency.KRW), roomType.BaseNightlyRate);
 
         string? location = response.Headers.Location?.ToString();
 
@@ -63,6 +67,7 @@ public class RoomTypeEndpointTests
         Assert.NotNull(createdRoomType);
         Assert.Equal(body.Id, createdRoomType.Id);
         Assert.Equal("DBL", createdRoomType.Code);
+        Assert.Equal(120_000, createdRoomType.BaseNightlyRateAmount);
     }
 
     [Fact]
@@ -71,9 +76,9 @@ public class RoomTypeEndpointTests
         var tenantId = TenantId.New();
         var otherTenantId = TenantId.New();
 
-        var deluxe = RoomType.Create(tenantId, RoomTypeCode.Create("DLX"), "Deluxe", 2, 4);
-        var doubleRoom = RoomType.Create(tenantId, RoomTypeCode.Create("DBL"), "Double", 2, 2);
-        var excluded = RoomType.Create(otherTenantId, RoomTypeCode.Create("SGL"), "Single", 1, 1);
+        var deluxe = RoomType.Create(tenantId, RoomTypeCode.Create("DLX"), "Deluxe", 2, 4, new Money(150_000, Currency.KRW));
+        var doubleRoom = RoomType.Create(tenantId, RoomTypeCode.Create("DBL"), "Double", 2, 2, new Money(120_000, Currency.KRW));
+        var excluded = RoomType.Create(otherTenantId, RoomTypeCode.Create("SGL"), "Single", 1, 1, new Money(80_000, Currency.KRW));
 
         await using (HotelDbContext context = _fixture.CreateDbContext())
         {
@@ -90,6 +95,8 @@ public class RoomTypeEndpointTests
         Assert.Equal(2, response.Length);
         Assert.Equal("DBL", response[0].Code);
         Assert.Equal("DLX", response[1].Code);
+        Assert.Equal(120_000, response[0].BaseNightlyRateAmount);
+        Assert.Equal(150_000, response[1].BaseNightlyRateAmount);
     }
 
     [Fact]
@@ -97,7 +104,7 @@ public class RoomTypeEndpointTests
     {
         var tenantId = TenantId.New();
         var otherTenantId = TenantId.New();
-        var roomType = RoomType.Create(otherTenantId, RoomTypeCode.Create("DBL"), "Double", 2, 4);
+        var roomType = RoomType.Create(otherTenantId, RoomTypeCode.Create("DBL"), "Double", 2, 4, new Money(120_000, Currency.KRW));
 
         await using (HotelDbContext context = _fixture.CreateDbContext())
         {

@@ -1,5 +1,6 @@
 using HotelPms.Features.RoomTypes.Domain.ValueObjects;
 using HotelPms.Shared.Domain;
+using HotelPms.Shared.Domain.ValueObjects;
 using HotelPms.Shared.MultiTenancy;
 
 namespace HotelPms.Features.RoomTypes.Domain;
@@ -12,6 +13,7 @@ public class RoomType : AggregateRoot
     public string Name { get; private set; }
     public int BaseOccupancy { get; private set; }
     public int MaxOccupancy { get; private set; }
+    public Money BaseNightlyRate { get; private set; }
 
     private RoomType()
     {
@@ -19,7 +21,13 @@ public class RoomType : AggregateRoot
         Name = null!;
     }
 
-    private RoomType(TenantId tenantId, RoomTypeCode code, string name, int baseOccupancy, int maxOccupancy)
+    private RoomType(
+        TenantId tenantId,
+        RoomTypeCode code,
+        string name,
+        int baseOccupancy,
+        int maxOccupancy,
+        Money baseNightlyRate)
     {
         Id = RoomTypeId.New();
         TenantId = tenantId;
@@ -27,17 +35,25 @@ public class RoomType : AggregateRoot
         Name = name;
         BaseOccupancy = baseOccupancy;
         MaxOccupancy = maxOccupancy;
+        BaseNightlyRate = baseNightlyRate;
     }
 
-    public static RoomType Create(TenantId tenantId, RoomTypeCode code, string name, int baseOccupancy, int maxOccupancy)
+    public static RoomType Create(
+        TenantId tenantId,
+        RoomTypeCode code,
+        string name,
+        int baseOccupancy,
+        int maxOccupancy,
+        Money baseNightlyRate)
     {
         EnsureValidTenantId(tenantId);
         EnsureValidCode(code);
         string normalizedName = name?.Trim() ?? "";
         EnsureValidName(normalizedName);
         EnsureValidOccupancy(baseOccupancy, maxOccupancy);
+        EnsureValidBaseNightlyRate(baseNightlyRate);
 
-        return new RoomType(tenantId, code, normalizedName, baseOccupancy, maxOccupancy);
+        return new RoomType(tenantId, code, normalizedName, baseOccupancy, maxOccupancy, baseNightlyRate);
     }
 
     private static void EnsureValidTenantId(TenantId tenantId)
@@ -79,6 +95,14 @@ public class RoomType : AggregateRoot
         if (maxOccupancy < baseOccupancy)
         {
             throw new ArgumentException("Max occupancy must be greater than or equal to base occupancy.", nameof(maxOccupancy));
+        }
+    }
+
+    private static void EnsureValidBaseNightlyRate(Money baseNightlyRate)
+    {
+        if (!Enum.IsDefined(baseNightlyRate.Currency))
+        {
+            throw new ArgumentException("Base nightly rate currency must be supported.", nameof(baseNightlyRate));
         }
     }
 }

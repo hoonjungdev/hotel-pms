@@ -3,6 +3,7 @@ using HotelPms.Features.RoomTypes.Domain.ValueObjects;
 using HotelPms.Features.RoomTypes.GetRoomType;
 using HotelPms.Infrastructure.Database;
 using HotelPms.IntegrationTests.Infrastructure;
+using HotelPms.Shared.Domain.ValueObjects;
 using HotelPms.Shared.MultiTenancy;
 
 namespace HotelPms.IntegrationTests.Features.RoomTypes.GetRoomType;
@@ -21,7 +22,7 @@ public class GetRoomTypeHandlerTests
     public async Task HandleAsync_ExistingRoomType_ReturnsRoomTypeDetails()
     {
         var tenantId = TenantId.New();
-        var roomType = RoomType.Create(tenantId, RoomTypeCode.Create("DBL"), "Double", 2, 4);
+        var roomType = RoomType.Create(tenantId, RoomTypeCode.Create("DBL"), "Double", 2, 4, new Money(120_000, Currency.KRW));
 
         await using (HotelDbContext context = _fixture.CreateDbContext())
         {
@@ -41,6 +42,7 @@ public class GetRoomTypeHandlerTests
             Assert.Equal("Double", details.Name);
             Assert.Equal(2, details.BaseOccupancy);
             Assert.Equal(4, details.MaxOccupancy);
+            Assert.Equal(new Money(120_000, Currency.KRW), details.BaseNightlyRate);
         }
     }
 
@@ -49,7 +51,7 @@ public class GetRoomTypeHandlerTests
     {
         var tenantId = TenantId.New();
         var otherTenantId = TenantId.New();
-        var roomType = RoomType.Create(otherTenantId, RoomTypeCode.Create("DBL"), "Double", 2, 4);
+        var roomType = RoomType.Create(otherTenantId, RoomTypeCode.Create("DBL"), "Double", 2, 4, new Money(120_000, Currency.KRW));
 
         await using (HotelDbContext context = _fixture.CreateDbContext())
         {

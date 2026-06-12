@@ -3,6 +3,7 @@ using HotelPms.Features.RoomTypes.Domain.ValueObjects;
 using HotelPms.Features.RoomTypes.ListRoomTypes;
 using HotelPms.Infrastructure.Database;
 using HotelPms.IntegrationTests.Infrastructure;
+using HotelPms.Shared.Domain.ValueObjects;
 using HotelPms.Shared.MultiTenancy;
 
 namespace HotelPms.IntegrationTests.Features.RoomTypes.ListRoomTypes;
@@ -22,8 +23,8 @@ public class ListRoomTypesHandlerTests
     {
         var tenantId = TenantId.New();
 
-        var deluxe = RoomType.Create(tenantId, RoomTypeCode.Create("DLX"), "Deluxe", 2, 4);
-        var doubleRoom = RoomType.Create(tenantId, RoomTypeCode.Create("DBL"), "Double", 2, 2);
+        var deluxe = RoomType.Create(tenantId, RoomTypeCode.Create("DLX"), "Deluxe", 2, 4, new Money(150_000, Currency.KRW));
+        var doubleRoom = RoomType.Create(tenantId, RoomTypeCode.Create("DBL"), "Double", 2, 2, new Money(120_000, Currency.KRW));
 
         await using (HotelDbContext context = _fixture.CreateDbContext())
         {
@@ -39,6 +40,8 @@ public class ListRoomTypesHandlerTests
             Assert.Equal(2, roomTypes.Count);
             Assert.Equal("DBL", roomTypes[0].Code);
             Assert.Equal("DLX", roomTypes[1].Code);
+            Assert.Equal(new Money(120_000, Currency.KRW), roomTypes[0].BaseNightlyRate);
+            Assert.Equal(new Money(150_000, Currency.KRW), roomTypes[1].BaseNightlyRate);
         }
     }
 
@@ -48,8 +51,8 @@ public class ListRoomTypesHandlerTests
         var tenantId1 = TenantId.New();
         var tenantId2 = TenantId.New();
 
-        var first = RoomType.Create(tenantId1, RoomTypeCode.Create("DBL"), "Double", 2, 2);
-        var second = RoomType.Create(tenantId2, RoomTypeCode.Create("DLX"), "Deluxe", 2, 4);
+        var first = RoomType.Create(tenantId1, RoomTypeCode.Create("DBL"), "Double", 2, 2, new Money(120_000, Currency.KRW));
+        var second = RoomType.Create(tenantId2, RoomTypeCode.Create("DLX"), "Deluxe", 2, 4, new Money(150_000, Currency.KRW));
 
         await using (HotelDbContext context = _fixture.CreateDbContext())
         {

@@ -1,6 +1,7 @@
 using FluentValidation;
 using FluentValidation.Results;
 using HotelPms.Features.Guests.Domain;
+using HotelPms.Features.Pricing.Domain;
 using HotelPms.Features.Reservations.Domain;
 using HotelPms.Features.Reservations.Infrastructure;
 using HotelPms.Features.RoomTypes.Domain;
@@ -74,7 +75,8 @@ public class CreateReservationHandler(HotelDbContext context, IValidator<CreateR
             command.PrimaryGuestId,
             command.RoomTypeId,
             stayPeriod,
-            command.GuestCount);
+            command.GuestCount,
+            PriceCalculator.CalculateStayTotal(roomType.BaseNightlyRate, stayPeriod));
 
         context.Set<Reservation>().Add(reservation);
         await context.SaveChangesAsync(cancellationToken);
@@ -86,6 +88,7 @@ public class CreateReservationHandler(HotelDbContext context, IValidator<CreateR
             reservation.StayPeriod.Start,
             reservation.StayPeriod.End,
             reservation.GuestCount,
+            reservation.TotalAmount,
             reservation.Status.ToString());
     }
 }

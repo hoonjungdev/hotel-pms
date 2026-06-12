@@ -40,6 +40,8 @@ internal static class ListReservationsEndpoint
             reservation.CheckInDate,
             reservation.CheckOutDate,
             reservation.GuestCount,
+            reservation.TotalAmount.Amount,
+            reservation.TotalAmount.Currency.ToString(),
             reservation.Status);
     }
 }

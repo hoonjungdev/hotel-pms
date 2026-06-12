@@ -7,4 +7,6 @@ public sealed record ReservationResponse(
     DateOnly CheckInDate,
     DateOnly CheckOutDate,
     int GuestCount,
+    decimal TotalAmount,
+    string TotalCurrency,
     string Status);

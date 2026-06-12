@@ -1,4 +1,5 @@
 using FluentValidation;
+using HotelPms.Shared.Domain.ValueObjects;
 
 namespace HotelPms.Features.RoomTypes.CreateRoomType;
 
@@ -29,5 +30,21 @@ public sealed class CreateRoomTypeCommandValidator : AbstractValidator<CreateRoo
         RuleFor(command => command.MaxOccupancy)
             .GreaterThanOrEqualTo(command => command.BaseOccupancy)
             .WithMessage("Max occupancy must be greater than or equal to base occupancy.");
+
+        RuleFor(command => command.BaseNightlyRateAmount)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Base nightly rate amount cannot be negative.");
+
+        RuleFor(command => command.BaseNightlyRateCurrency)
+            .NotEmpty()
+            .WithMessage("Base nightly rate currency must be provided.")
+            .Must(IsSupportedCurrency)
+            .WithMessage("Base nightly rate currency is not supported.");
+    }
+
+    private static bool IsSupportedCurrency(string currency)
+    {
+        return Enum.TryParse(currency, ignoreCase: true, out Currency parsedCurrency) &&
+            Enum.IsDefined(parsedCurrency);
     }
 }

@@ -2,6 +2,7 @@ using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Features.RoomTypes.Domain.ValueObjects;
 using HotelPms.Infrastructure.Database;
 using HotelPms.IntegrationTests.Infrastructure;
+using HotelPms.Shared.Domain.ValueObjects;
 using HotelPms.Shared.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,7 +26,8 @@ public class RoomTypePersistenceTests
             RoomTypeCode.Create(" dbl "),
             "  Double  ",
             2,
-            4);
+            4,
+            new Money(120_000, Currency.KRW));
 
         await using (HotelDbContext context = _fixture.CreateDbContext())
         {
@@ -43,6 +45,7 @@ public class RoomTypePersistenceTests
             Assert.Equal("Double", restored.Name);
             Assert.Equal(2, restored.BaseOccupancy);
             Assert.Equal(4, restored.MaxOccupancy);
+            Assert.Equal(new Money(120_000, Currency.KRW), restored.BaseNightlyRate);
         }
     }
 
@@ -50,8 +53,8 @@ public class RoomTypePersistenceTests
     public async Task Save_DuplicateTenantCode_ThrowsDbUpdateException()
     {
         var tenantId = TenantId.New();
-        var first = RoomType.Create(tenantId, RoomTypeCode.Create("dbl"), "Double", 2, 4);
-        var second = RoomType.Create(tenantId, RoomTypeCode.Create("DBL"), "Deluxe Double", 2, 4);
+        var first = RoomType.Create(tenantId, RoomTypeCode.Create("dbl"), "Double", 2, 4, new Money(120_000, Currency.KRW));
+        var second = RoomType.Create(tenantId, RoomTypeCode.Create("DBL"), "Deluxe Double", 2, 4, new Money(150_000, Currency.KRW));
 
         await using HotelDbContext context = _fixture.CreateDbContext();
 
@@ -63,8 +66,8 @@ public class RoomTypePersistenceTests
     [Fact]
     public async Task Save_SameCodeDifferentTenants_PersistsRoomTypes()
     {
-        var first = RoomType.Create(TenantId.New(), RoomTypeCode.Create("dbl"), "Double", 2, 4);
-        var second = RoomType.Create(TenantId.New(), RoomTypeCode.Create("DBL"), "Double", 2, 4);
+        var first = RoomType.Create(TenantId.New(), RoomTypeCode.Create("dbl"), "Double", 2, 4, new Money(120_000, Currency.KRW));
+        var second = RoomType.Create(TenantId.New(), RoomTypeCode.Create("DBL"), "Double", 2, 4, new Money(120_000, Currency.KRW));
 
         await using HotelDbContext context = _fixture.CreateDbContext();
 

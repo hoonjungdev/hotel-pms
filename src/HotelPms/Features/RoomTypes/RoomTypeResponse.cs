@@ -5,4 +5,6 @@ public sealed record RoomTypeResponse(
     string Code,
     string Name,
     int BaseOccupancy,
-    int MaxOccupancy);
+    int MaxOccupancy,
+    decimal BaseNightlyRateAmount,
+    string BaseNightlyRateCurrency);

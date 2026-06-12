@@ -38,6 +38,8 @@ internal static class ListRoomTypesEndpoint
             roomType.Code,
             roomType.Name,
             roomType.BaseOccupancy,
-            roomType.MaxOccupancy);
+            roomType.MaxOccupancy,
+            roomType.BaseNightlyRate.Amount,
+            roomType.BaseNightlyRate.Currency.ToString());
     }
 }

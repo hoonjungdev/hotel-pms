@@ -19,7 +19,8 @@ public class ListRoomTypesHandler(HotelDbContext context)
                 roomType.Code.Value,
                 roomType.Name,
                 roomType.BaseOccupancy,
-                roomType.MaxOccupancy))
+                roomType.MaxOccupancy,
+                roomType.BaseNightlyRate))
             .ToListAsync(cancellationToken);
     }
 }

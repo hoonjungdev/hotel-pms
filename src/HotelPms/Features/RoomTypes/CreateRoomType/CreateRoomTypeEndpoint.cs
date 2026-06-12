@@ -27,7 +27,9 @@ internal static class CreateRoomTypeEndpoint
             request.Code,
             request.Name,
             request.BaseOccupancy,
-            request.MaxOccupancy);
+            request.MaxOccupancy,
+            request.BaseNightlyRateAmount,
+            request.BaseNightlyRateCurrency);
 
         try
         {
@@ -48,6 +50,8 @@ internal static class CreateRoomTypeEndpoint
             result.Code,
             result.Name,
             result.BaseOccupancy,
-            result.MaxOccupancy);
+            result.MaxOccupancy,
+            result.BaseNightlyRate.Amount,
+            result.BaseNightlyRate.Currency.ToString());
     }
 }

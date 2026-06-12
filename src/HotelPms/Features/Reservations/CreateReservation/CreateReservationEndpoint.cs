@@ -50,9 +50,12 @@ internal static class CreateReservationEndpoint
             result.Id.Value,
             result.PrimaryGuestId.Value,
             result.RoomTypeId.Value,
+            null,
             result.CheckInDate,
             result.CheckOutDate,
             result.GuestCount,
+            result.TotalAmount.Amount,
+            result.TotalAmount.Currency.ToString(),
             result.Status);
     }
 }

@@ -48,6 +48,8 @@ internal static class ConfirmReservationEndpoint
             result.CheckInDate,
             result.CheckOutDate,
             result.GuestCount,
+            result.TotalAmount.Amount,
+            result.TotalAmount.Currency.ToString(),
             result.Status);
     }
 }

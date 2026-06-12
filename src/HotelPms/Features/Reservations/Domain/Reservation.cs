@@ -14,6 +14,7 @@ public class Reservation : AggregateRoot
     public RoomTypeId RoomTypeId { get; private set; }
     public DateRange StayPeriod { get; private set; }
     public int GuestCount { get; private set; }
+    public Money TotalAmount { get; private set; }
     public ReservationStatus Status { get; private set; }
 
     private Reservation() { }
@@ -23,7 +24,8 @@ public class Reservation : AggregateRoot
         GuestId primaryGuestId,
         RoomTypeId roomTypeId,
         DateRange stayPeriod,
-        int guestCount)
+        int guestCount,
+        Money totalAmount)
     {
         Id = ReservationId.New();
         TenantId = tenantId;
@@ -31,6 +33,7 @@ public class Reservation : AggregateRoot
         RoomTypeId = roomTypeId;
         StayPeriod = stayPeriod;
         GuestCount = guestCount;
+        TotalAmount = totalAmount;
         Status = ReservationStatus.Pending;
     }
 
@@ -39,19 +42,22 @@ public class Reservation : AggregateRoot
         GuestId primaryGuestId,
         RoomTypeId roomTypeId,
         DateRange stayPeriod,
-        int guestCount)
+        int guestCount,
+        Money totalAmount)
     {
         EnsureValidTenantId(tenantId);
         EnsureValidPrimaryGuestId(primaryGuestId);
         EnsureValidRoomTypeId(roomTypeId);
         EnsureValidGuestCount(guestCount);
+        EnsureValidTotalAmount(totalAmount);
 
         var reservation = new Reservation(
             tenantId,
             primaryGuestId,
             roomTypeId,
             stayPeriod,
-            guestCount);
+            guestCount,
+            totalAmount);
 
         reservation.RaiseDomainEvent(new ReservationCreated(
             reservation.Id,
@@ -111,6 +117,14 @@ public class Reservation : AggregateRoot
         if (guestCount < 1)
         {
             throw new ArgumentException("Guest count must be at least 1.", nameof(guestCount));
+        }
+    }
+
+    private static void EnsureValidTotalAmount(Money totalAmount)
+    {
+        if (!Enum.IsDefined(totalAmount.Currency))
+        {
+            throw new ArgumentException("Total amount currency must be supported.", nameof(totalAmount));
         }
     }
 }
