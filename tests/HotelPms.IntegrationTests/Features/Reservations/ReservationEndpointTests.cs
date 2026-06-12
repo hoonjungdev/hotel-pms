@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using HotelPms.Features.Guests.Domain;
 using HotelPms.Features.Reservations;
+using HotelPms.Features.Reservations.CheckInReservation;
 using HotelPms.Features.Reservations.CheckReservationAvailability;
 using HotelPms.Features.Reservations.CreateReservation;
 using HotelPms.Features.Reservations.Domain;
@@ -9,6 +10,7 @@ using HotelPms.Features.Rooms.Domain;
 using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Infrastructure.Database;
 using HotelPms.IntegrationTests.Infrastructure;
+using HotelPms.Shared.Domain.ValueObjects;
 using HotelPms.Shared.MultiTenancy;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -64,9 +66,12 @@ public class ReservationEndpointTests
         Assert.NotEqual(Guid.Empty, body.Id);
         Assert.Equal(guest.Id.Value, body.PrimaryGuestId);
         Assert.Equal(roomType.Id.Value, body.RoomTypeId);
+        Assert.Null(body.AssignedRoomId);
         Assert.Equal(new DateOnly(2026, 7, 1), body.CheckInDate);
         Assert.Equal(new DateOnly(2026, 7, 3), body.CheckOutDate);
         Assert.Equal(2, body.GuestCount);
+        Assert.Equal(240_000, body.TotalAmount);
+        Assert.Equal("KRW", body.TotalCurrency);
         Assert.Equal(ReservationStatus.Pending.ToString(), body.Status);
 
         await using HotelDbContext restoredContext = _fixture.CreateDbContext();
@@ -76,6 +81,7 @@ public class ReservationEndpointTests
         Assert.Equal(tenantId, reservation.TenantId);
         Assert.Equal(guest.Id, reservation.PrimaryGuestId);
         Assert.Equal(roomType.Id, reservation.RoomTypeId);
+        Assert.Equal(new Money(240_000, Currency.KRW), reservation.TotalAmount);
     }
 
     [Fact]
@@ -276,6 +282,9 @@ public class ReservationEndpointTests
         Assert.Equal(2, response.Length);
         Assert.Equal(earlier.Id.Value, response[0].Id);
         Assert.Equal(later.Id.Value, response[1].Id);
+        Assert.Null(response[0].AssignedRoomId);
+        Assert.Equal(240_000, response[0].TotalAmount);
+        Assert.Equal("KRW", response[0].TotalCurrency);
     }
 
     [Fact]
@@ -304,9 +313,12 @@ public class ReservationEndpointTests
         Assert.Equal(reservation.Id.Value, response.Id);
         Assert.Equal(guest.Id.Value, response.PrimaryGuestId);
         Assert.Equal(roomType.Id.Value, response.RoomTypeId);
+        Assert.Null(response.AssignedRoomId);
         Assert.Equal(new DateOnly(2026, 7, 1), response.CheckInDate);
         Assert.Equal(new DateOnly(2026, 7, 3), response.CheckOutDate);
         Assert.Equal(2, response.GuestCount);
+        Assert.Equal(240_000, response.TotalAmount);
+        Assert.Equal("KRW", response.TotalCurrency);
         Assert.Equal(ReservationStatus.Pending.ToString(), response.Status);
     }
 
@@ -362,6 +374,8 @@ public class ReservationEndpointTests
 
         Assert.NotNull(body);
         Assert.Equal(reservation.Id.Value, body.Id);
+        Assert.Equal(240_000, body.TotalAmount);
+        Assert.Equal("KRW", body.TotalCurrency);
         Assert.Equal(ReservationStatus.Confirmed.ToString(), body.Status);
 
         await using HotelDbContext restoredContext = _fixture.CreateDbContext();
@@ -449,6 +463,8 @@ public class ReservationEndpointTests
 
         Assert.NotNull(body);
         Assert.Equal(reservation.Id.Value, body.Id);
+        Assert.Equal(240_000, body.TotalAmount);
+        Assert.Equal("KRW", body.TotalCurrency);
         Assert.Equal(ReservationStatus.Cancelled.ToString(), body.Status);
     }
 
@@ -498,6 +514,151 @@ public class ReservationEndpointTests
         using HttpClient client = CreateClient(factory, tenantId);
 
         HttpResponseMessage response = await client.PostAsync($"/api/reservations/{reservation.Id.Value}/cancel", null);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PostCheckIn_ConfirmedReservationAndCleanMatchingRoom_ReturnsCheckedInReservation()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Room room = ReservationTestData.CreateRoom(tenantId, roomType, "A101");
+        Reservation reservation = ReservationTestData.CreateReservation(tenantId, guest, roomType);
+        reservation.Confirm();
+        var request = new CheckInReservationRequest(room.Id.Value);
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<Guest>().Add(guest);
+            context.Set<RoomType>().Add(roomType);
+            context.Set<Room>().Add(room);
+            context.Set<Reservation>().Add(reservation);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        HttpResponseMessage response = await client.PostAsJsonAsync(
+            $"/api/reservations/{reservation.Id.Value}/check-in",
+            request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        ReservationResponse? body = await response.Content.ReadFromJsonAsync<ReservationResponse>();
+
+        Assert.NotNull(body);
+        Assert.Equal(reservation.Id.Value, body.Id);
+        Assert.Equal(room.Id.Value, body.AssignedRoomId);
+        Assert.Equal(ReservationStatus.CheckedIn.ToString(), body.Status);
+
+        await using HotelDbContext restoredContext = _fixture.CreateDbContext();
+        Reservation restoredReservation = await restoredContext.Set<Reservation>()
+            .SingleAsync(candidate => candidate.Id == reservation.Id);
+
+        Assert.Equal(room.Id, restoredReservation.AssignedRoomId);
+        Assert.Equal(ReservationStatus.CheckedIn, restoredReservation.Status);
+    }
+
+    [Fact]
+    public async Task PostCheckIn_DirtyRoom_ReturnsBadRequest()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Room room = ReservationTestData.CreateRoom(tenantId, roomType, "A101");
+        room.MarkDirty();
+        Reservation reservation = ReservationTestData.CreateReservation(tenantId, guest, roomType);
+        reservation.Confirm();
+        var request = new CheckInReservationRequest(room.Id.Value);
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<Guest>().Add(guest);
+            context.Set<RoomType>().Add(roomType);
+            context.Set<Room>().Add(room);
+            context.Set<Reservation>().Add(reservation);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        HttpResponseMessage response = await client.PostAsJsonAsync(
+            $"/api/reservations/{reservation.Id.Value}/check-in",
+            request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PostCheckOut_CheckedInReservation_ReturnsCheckedOutReservationAndMarksRoomDirty()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Room room = ReservationTestData.CreateRoom(tenantId, roomType, "A101");
+        Reservation reservation = ReservationTestData.CreateReservation(tenantId, guest, roomType);
+        reservation.Confirm();
+        reservation.CheckIn(room);
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<Guest>().Add(guest);
+            context.Set<RoomType>().Add(roomType);
+            context.Set<Room>().Add(room);
+            context.Set<Reservation>().Add(reservation);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        HttpResponseMessage response = await client.PostAsync(
+            $"/api/reservations/{reservation.Id.Value}/check-out",
+            null);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        ReservationResponse? body = await response.Content.ReadFromJsonAsync<ReservationResponse>();
+
+        Assert.NotNull(body);
+        Assert.Equal(reservation.Id.Value, body.Id);
+        Assert.Equal(room.Id.Value, body.AssignedRoomId);
+        Assert.Equal(ReservationStatus.CheckedOut.ToString(), body.Status);
+
+        await using HotelDbContext restoredContext = _fixture.CreateDbContext();
+        Room restoredRoom = await restoredContext.Set<Room>()
+            .SingleAsync(candidate => candidate.Id == room.Id);
+
+        Assert.Equal(RoomCondition.Dirty, restoredRoom.Condition);
+    }
+
+    [Fact]
+    public async Task PostCheckOut_ConfirmedReservation_ReturnsBadRequest()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Reservation reservation = ReservationTestData.CreateReservation(tenantId, guest, roomType);
+        reservation.Confirm();
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<Guest>().Add(guest);
+            context.Set<RoomType>().Add(roomType);
+            context.Set<Reservation>().Add(reservation);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        HttpResponseMessage response = await client.PostAsync(
+            $"/api/reservations/{reservation.Id.Value}/check-out",
+            null);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
