@@ -315,6 +315,60 @@ public class CreateReservationHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_ConcurrentRequestsForLastRoom_PersistsOnlyOneReservation()
+    {
+        var tenantId = TenantId.New();
+        Guest firstGuest = ReservationTestData.CreateGuest(tenantId, "First Guest");
+        Guest secondGuest = ReservationTestData.CreateGuest(tenantId, "Second Guest");
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Room room = ReservationTestData.CreateRoom(tenantId, roomType, "A101");
+        var firstCommand = new CreateReservationCommand(
+            tenantId,
+            firstGuest.Id,
+            roomType.Id,
+            new DateOnly(2026, 7, 1),
+            new DateOnly(2026, 7, 3),
+            GuestCount: 2);
+        var secondCommand = new CreateReservationCommand(
+            tenantId,
+            secondGuest.Id,
+            roomType.Id,
+            new DateOnly(2026, 7, 1),
+            new DateOnly(2026, 7, 3),
+            GuestCount: 2);
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<Guest>().AddRange(firstGuest, secondGuest);
+            context.Set<RoomType>().Add(roomType);
+            context.Set<Room>().Add(room);
+            await context.SaveChangesAsync();
+        }
+
+        await using HotelDbContext firstContext = _fixture.CreateDbContext();
+        await using HotelDbContext secondContext = _fixture.CreateDbContext();
+        var firstHandler = new CreateReservationHandler(firstContext, new CreateReservationCommandValidator());
+        var secondHandler = new CreateReservationHandler(secondContext, new CreateReservationCommandValidator());
+
+        ReservationAttempt[] attempts = await Task.WhenAll(
+            CaptureReservationAttemptAsync(() => firstHandler.HandleAsync(firstCommand)),
+            CaptureReservationAttemptAsync(() => secondHandler.HandleAsync(secondCommand)));
+
+        Assert.Single(attempts, attempt => attempt.Result is not null);
+        Assert.Single(attempts, attempt => attempt.Exception is ValidationException);
+
+        await using HotelDbContext restoredContext = _fixture.CreateDbContext();
+        int reservationCount = await restoredContext.Set<Reservation>()
+            .CountAsync(candidate =>
+                candidate.TenantId == tenantId &&
+                candidate.RoomTypeId == roomType.Id &&
+                candidate.StayPeriod.Start == new DateOnly(2026, 7, 1) &&
+                candidate.StayPeriod.End == new DateOnly(2026, 7, 3));
+
+        Assert.Equal(1, reservationCount);
+    }
+
+    [Fact]
     public async Task HandleAsync_CheckOutDateBeforeCheckInDate_ThrowsValidationException()
     {
         var command = new CreateReservationCommand(
@@ -331,4 +385,18 @@ public class CreateReservationHandlerTests
         await Assert.ThrowsAsync<ValidationException>(async () => await handler.HandleAsync(command));
     }
 
+    private static async Task<ReservationAttempt> CaptureReservationAttemptAsync(
+        Func<Task<CreateReservationResult>> action)
+    {
+        try
+        {
+            return new ReservationAttempt(await action(), null);
+        }
+        catch (Exception exception)
+        {
+            return new ReservationAttempt(null, exception);
+        }
+    }
+
+    private sealed record ReservationAttempt(CreateReservationResult? Result, Exception? Exception);
 }

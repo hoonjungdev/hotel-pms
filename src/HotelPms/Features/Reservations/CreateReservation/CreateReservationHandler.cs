@@ -8,6 +8,7 @@ using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Infrastructure.Database;
 using HotelPms.Shared.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace HotelPms.Features.Reservations.CreateReservation;
 
@@ -54,6 +55,11 @@ public class CreateReservationHandler(HotelDbContext context, IValidator<CreateR
         }
 
         var stayPeriod = new DateRange(command.CheckInDate, command.CheckOutDate);
+
+        await using IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
+        await context.AcquireReservationCreationLockAsync(command.TenantId, command.RoomTypeId, cancellationToken);
+
         ReservationAvailability availability = await context.GetReservationAvailabilityAsync(
             command.TenantId,
             command.RoomTypeId,
@@ -80,6 +86,7 @@ public class CreateReservationHandler(HotelDbContext context, IValidator<CreateR
 
         context.Set<Reservation>().Add(reservation);
         await context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return new CreateReservationResult(
             reservation.Id,
