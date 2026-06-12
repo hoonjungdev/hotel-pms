@@ -1,5 +1,6 @@
 using HotelPms.Features.Reservations.CancelReservation;
 using HotelPms.Features.Reservations.CheckInReservation;
+using HotelPms.Features.Reservations.CheckOutReservation;
 using HotelPms.Features.Reservations.CheckReservationAvailability;
 using HotelPms.Features.Reservations.ConfirmReservation;
 using HotelPms.Features.Reservations.CreateReservation;
@@ -23,6 +24,7 @@ public static class ReservationEndpoints
         group.MapConfirmReservationEndpoint();
         group.MapCancelReservationEndpoint();
         group.MapCheckInReservationEndpoint();
+        group.MapCheckOutReservationEndpoint();
 
         return endpoints;
     }

@@ -87,9 +87,9 @@ public class Reservation : AggregateRoot
             throw new InvalidOperationException("Reservation is already cancelled.");
         }
 
-        if (Status == ReservationStatus.CheckedIn)
+        if (Status is ReservationStatus.CheckedIn or ReservationStatus.CheckedOut)
         {
-            throw new InvalidOperationException("In-house reservations cannot be cancelled.");
+            throw new InvalidOperationException("In-house or checked-out reservations cannot be cancelled.");
         }
 
         Status = ReservationStatus.Cancelled;
@@ -119,6 +119,27 @@ public class Reservation : AggregateRoot
 
         AssignedRoomId = room.Id;
         Status = ReservationStatus.CheckedIn;
+    }
+
+    public void CheckOut(Room room)
+    {
+        if (Status != ReservationStatus.CheckedIn)
+        {
+            throw new InvalidOperationException("Only checked-in reservations can be checked out.");
+        }
+
+        if (AssignedRoomId is null)
+        {
+            throw new InvalidOperationException("A checked-in reservation must have an assigned room.");
+        }
+
+        if (room.TenantId != TenantId || room.Id != AssignedRoomId)
+        {
+            throw new InvalidOperationException("Checked-out room must match the assigned room.");
+        }
+
+        room.MarkDirty();
+        Status = ReservationStatus.CheckedOut;
     }
 
     private static void EnsureValidTenantId(TenantId tenantId)

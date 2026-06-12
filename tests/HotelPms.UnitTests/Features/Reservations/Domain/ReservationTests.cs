@@ -225,6 +225,42 @@ public class ReservationTests
         Assert.Throws<InvalidOperationException>(() => reservation.CheckIn(room));
     }
 
+    [Fact]
+    public void CheckOut_CheckedInReservation_MarksReservationCheckedOutAndRoomDirty()
+    {
+        Reservation reservation = CreateReservation();
+        Room room = CreateRoom(reservation.TenantId, reservation.RoomTypeId);
+        reservation.Confirm();
+        reservation.CheckIn(room);
+
+        reservation.CheckOut(room);
+
+        Assert.Equal(ReservationStatus.CheckedOut, reservation.Status);
+        Assert.Equal(RoomCondition.Dirty, room.Condition);
+    }
+
+    [Fact]
+    public void CheckOut_ConfirmedReservation_ThrowsException()
+    {
+        Reservation reservation = CreateReservation();
+        Room room = CreateRoom(reservation.TenantId, reservation.RoomTypeId);
+        reservation.Confirm();
+
+        Assert.Throws<InvalidOperationException>(() => reservation.CheckOut(room));
+    }
+
+    [Fact]
+    public void CheckOut_DifferentRoom_ThrowsException()
+    {
+        Reservation reservation = CreateReservation();
+        Room assignedRoom = CreateRoom(reservation.TenantId, reservation.RoomTypeId);
+        Room otherRoom = CreateRoom(reservation.TenantId, reservation.RoomTypeId);
+        reservation.Confirm();
+        reservation.CheckIn(assignedRoom);
+
+        Assert.Throws<InvalidOperationException>(() => reservation.CheckOut(otherRoom));
+    }
+
     private static Reservation CreateReservation()
     {
         return Reservation.Create(

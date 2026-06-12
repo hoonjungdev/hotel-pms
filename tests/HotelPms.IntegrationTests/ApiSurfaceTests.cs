@@ -41,6 +41,7 @@ public class ApiSurfaceTests
         Assert.True(document.RootElement.GetProperty("paths").TryGetProperty("/api/reservations", out _));
         Assert.True(document.RootElement.GetProperty("paths").TryGetProperty("/api/reservations/{reservationId}/confirm", out _));
         Assert.True(document.RootElement.GetProperty("paths").TryGetProperty("/api/reservations/{reservationId}/check-in", out _));
+        Assert.True(document.RootElement.GetProperty("paths").TryGetProperty("/api/reservations/{reservationId}/check-out", out _));
     }
 
     private static WebApplicationFactory<Program> CreateFactory()
