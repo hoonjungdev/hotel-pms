@@ -1,6 +1,7 @@
 @baseUrl = http://localhost:5216
 @tenantId = 11111111-1111-1111-1111-111111111111
 @roomTypeId = 00000000-0000-0000-0000-000000000000
+@roomId = 00000000-0000-0000-0000-000000000000
 @guestId = 00000000-0000-0000-0000-000000000000
 @reservationId = 00000000-0000-0000-0000-000000000000
 
@@ -19,7 +20,9 @@ X-Tenant-Id: {{tenantId}}
   "code": "DBL",
   "name": "Double",
   "baseOccupancy": 2,
-  "maxOccupancy": 3
+  "maxOccupancy": 3,
+  "baseNightlyRateAmount": 120000,
+  "baseNightlyRateCurrency": "KRW"
 }
 
 ### List room types
@@ -87,10 +90,37 @@ GET {{baseUrl}}/api/reservations/availability?roomTypeId={{roomTypeId}}&checkInD
 X-Tenant-Id: {{tenantId}}
 
 ### List reservations
+# With demo seed data, this returns one confirmed Single reservation for 2026-07-10 to 2026-07-12.
 GET {{baseUrl}}/api/reservations
 X-Tenant-Id: {{tenantId}}
 
 ### Get reservation
 # Replace reservationId with a value returned by "Create reservation" or "List reservations".
 GET {{baseUrl}}/api/reservations/{{reservationId}}
+X-Tenant-Id: {{tenantId}}
+
+### Confirm reservation
+# Replace reservationId with a value returned by "Create reservation" or "List reservations".
+POST {{baseUrl}}/api/reservations/{{reservationId}}/confirm
+X-Tenant-Id: {{tenantId}}
+
+### Cancel reservation
+# Replace reservationId with a value returned by "Create reservation" or "List reservations".
+POST {{baseUrl}}/api/reservations/{{reservationId}}/cancel
+X-Tenant-Id: {{tenantId}}
+
+### Check in reservation
+# Replace reservationId with a confirmed reservation ID.
+# Replace roomId with a clean room ID for the reservation room type.
+POST {{baseUrl}}/api/reservations/{{reservationId}}/check-in
+Content-Type: application/json
+X-Tenant-Id: {{tenantId}}
+
+{
+  "roomId": "{{roomId}}"
+}
+
+### Check out reservation
+# Replace reservationId with a checked-in reservation ID.
+POST {{baseUrl}}/api/reservations/{{reservationId}}/check-out
 X-Tenant-Id: {{tenantId}}
