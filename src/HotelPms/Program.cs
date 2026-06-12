@@ -5,6 +5,7 @@ using HotelPms.Features.Guests.ListGuests;
 using HotelPms.Features.Guests.RegisterGuest;
 using HotelPms.Features.Reservations;
 using HotelPms.Features.Reservations.CancelReservation;
+using HotelPms.Features.Reservations.CheckReservationAvailability;
 using HotelPms.Features.Reservations.ConfirmReservation;
 using HotelPms.Features.Reservations.CreateReservation;
 using HotelPms.Features.Reservations.GetReservation;
@@ -57,6 +58,8 @@ try
     builder.Services.AddScoped<CreateReservationHandler>();
     builder.Services.AddScoped<IValidator<CreateReservationCommand>, CreateReservationCommandValidator>();
     builder.Services.AddScoped<ListReservationsHandler>();
+    builder.Services.AddScoped<CheckReservationAvailabilityHandler>();
+    builder.Services.AddScoped<IValidator<CheckReservationAvailabilityQuery>, CheckReservationAvailabilityQueryValidator>();
     builder.Services.AddScoped<GetReservationHandler>();
     builder.Services.AddScoped<ConfirmReservationHandler>();
     builder.Services.AddScoped<CancelReservationHandler>();

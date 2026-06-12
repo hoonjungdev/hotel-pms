@@ -81,6 +81,11 @@ X-Tenant-Id: {{tenantId}}
   "guestCount": 2
 }
 
+### Check reservation availability
+# Replace roomTypeId with a value returned by "Create room type" or "List room types".
+GET {{baseUrl}}/api/reservations/availability?roomTypeId={{roomTypeId}}&checkInDate=2026-07-01&checkOutDate=2026-07-03
+X-Tenant-Id: {{tenantId}}
+
 ### List reservations
 GET {{baseUrl}}/api/reservations
 X-Tenant-Id: {{tenantId}}

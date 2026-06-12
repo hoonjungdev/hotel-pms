@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using HotelPms.Features.Guests.Domain;
 using HotelPms.Features.Reservations;
+using HotelPms.Features.Reservations.CheckReservationAvailability;
 using HotelPms.Features.Reservations.CreateReservation;
 using HotelPms.Features.Reservations.Domain;
 using HotelPms.Features.Rooms.Domain;
@@ -139,6 +140,102 @@ public class ReservationEndpointTests
         using HttpClient client = CreateClient(factory, tenantId);
 
         HttpResponseMessage response = await client.PostAsJsonAsync("/api/reservations", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetAvailability_OutOfServiceRoomAndCancelledReservation_ReturnsAvailabilityCounts()
+    {
+        var tenantId = TenantId.New();
+        Guest guest = ReservationTestData.CreateGuest(tenantId);
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+        Room firstRoom = ReservationTestData.CreateRoom(tenantId, roomType, "A101");
+        Room secondRoom = ReservationTestData.CreateRoom(tenantId, roomType, "A102");
+        Room outOfServiceRoom = ReservationTestData.CreateRoom(tenantId, roomType, "A103");
+        outOfServiceRoom.TakeOutOfService();
+        Reservation activeReservation = ReservationTestData.CreateReservation(
+            tenantId,
+            guest,
+            roomType,
+            checkInDate: new DateOnly(2026, 7, 1),
+            checkOutDate: new DateOnly(2026, 7, 3));
+        Reservation cancelledReservation = ReservationTestData.CreateReservation(
+            tenantId,
+            guest,
+            roomType,
+            checkInDate: new DateOnly(2026, 7, 1),
+            checkOutDate: new DateOnly(2026, 7, 3));
+        cancelledReservation.Cancel();
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<Guest>().Add(guest);
+            context.Set<RoomType>().Add(roomType);
+            context.Set<Room>().AddRange(firstRoom, secondRoom, outOfServiceRoom);
+            context.Set<Reservation>().AddRange(activeReservation, cancelledReservation);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        CheckReservationAvailabilityResponse? response =
+            await client.GetFromJsonAsync<CheckReservationAvailabilityResponse>(
+                $"/api/reservations/availability?roomTypeId={roomType.Id.Value}" +
+                "&checkInDate=2026-07-02&checkOutDate=2026-07-04");
+
+        Assert.NotNull(response);
+        Assert.Equal(roomType.Id.Value, response.RoomTypeId);
+        Assert.Equal(new DateOnly(2026, 7, 2), response.CheckInDate);
+        Assert.Equal(new DateOnly(2026, 7, 4), response.CheckOutDate);
+        Assert.Equal(2, response.SellableRoomCount);
+        Assert.Equal(1, response.ActiveReservationCount);
+        Assert.Equal(1, response.AvailableRoomCount);
+        Assert.True(response.HasAvailability);
+    }
+
+    [Fact]
+    public async Task GetAvailability_DifferentTenantRoomType_ReturnsBadRequest()
+    {
+        var tenantId = TenantId.New();
+        var otherTenantId = TenantId.New();
+        RoomType roomType = ReservationTestData.CreateRoomType(otherTenantId);
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<RoomType>().Add(roomType);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        HttpResponseMessage response = await client.GetAsync(
+            $"/api/reservations/availability?roomTypeId={roomType.Id.Value}" +
+            "&checkInDate=2026-07-02&checkOutDate=2026-07-04");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetAvailability_CheckOutDateBeforeCheckInDate_ReturnsBadRequest()
+    {
+        var tenantId = TenantId.New();
+        RoomType roomType = ReservationTestData.CreateRoomType(tenantId);
+
+        await using (HotelDbContext context = _fixture.CreateDbContext())
+        {
+            context.Set<RoomType>().Add(roomType);
+            await context.SaveChangesAsync();
+        }
+
+        await using WebApplicationFactory<Program> factory = CreateFactory();
+        using HttpClient client = CreateClient(factory, tenantId);
+
+        HttpResponseMessage response = await client.GetAsync(
+            $"/api/reservations/availability?roomTypeId={roomType.Id.Value}" +
+            "&checkInDate=2026-07-04&checkOutDate=2026-07-02");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
