@@ -1,9 +1,12 @@
 using HotelPms.Features.Guests.Domain;
 using HotelPms.Features.Guests.Domain.ValueObjects;
+using HotelPms.Features.Pricing.Domain;
+using HotelPms.Features.Reservations.Domain;
 using HotelPms.Features.Rooms.Domain;
 using HotelPms.Features.Rooms.Domain.ValueObjects;
 using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Features.RoomTypes.Domain.ValueObjects;
+using HotelPms.Shared.Domain.ValueObjects;
 using HotelPms.Shared.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,18 +18,23 @@ public static class DemoSeedData
 
     public static async Task SeedAsync(HotelDbContext context, CancellationToken cancellationToken = default)
     {
-        Dictionary<string, RoomTypeId> roomTypeIds = await SeedRoomTypesAsync(context, cancellationToken);
-        await SeedRoomsAsync(context, roomTypeIds, cancellationToken);
-        await SeedGuestsAsync(context, cancellationToken);
+        Dictionary<string, RoomType> roomTypes = await SeedRoomTypesAsync(context, cancellationToken);
+        Dictionary<string, Guest> guests = await SeedGuestsAsync(context, cancellationToken);
+
+        await SeedRoomsAsync(
+            context,
+            roomTypes.ToDictionary(pair => pair.Key, pair => pair.Value.Id, StringComparer.OrdinalIgnoreCase),
+            cancellationToken);
+        await SeedReservationsAsync(context, roomTypes, guests, cancellationToken);
 
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    private static async Task<Dictionary<string, RoomTypeId>> SeedRoomTypesAsync(
+    private static async Task<Dictionary<string, RoomType>> SeedRoomTypesAsync(
         HotelDbContext context,
         CancellationToken cancellationToken)
     {
-        return new Dictionary<string, RoomTypeId>(StringComparer.OrdinalIgnoreCase)
+        return new Dictionary<string, RoomType>(StringComparer.OrdinalIgnoreCase)
         {
             ["SGL"] = (await GetOrAddRoomTypeAsync(
                 context,
@@ -34,21 +42,24 @@ public static class DemoSeedData
                 "Single",
                 1,
                 1,
-                cancellationToken)).Id,
+                new Money(80_000, Currency.KRW),
+                cancellationToken)),
             ["DBL"] = (await GetOrAddRoomTypeAsync(
                 context,
                 RoomTypeCode.Create("DBL"),
                 "Double",
                 2,
                 3,
-                cancellationToken)).Id,
+                new Money(120_000, Currency.KRW),
+                cancellationToken)),
             ["FAM"] = (await GetOrAddRoomTypeAsync(
                 context,
                 RoomTypeCode.Create("FAM"),
                 "Family",
                 2,
                 5,
-                cancellationToken)).Id
+                new Money(180_000, Currency.KRW),
+                cancellationToken))
         };
     }
 
@@ -58,6 +69,7 @@ public static class DemoSeedData
         string name,
         int baseOccupancy,
         int maxOccupancy,
+        Money baseNightlyRate,
         CancellationToken cancellationToken)
     {
         RoomType? existing = await context.Set<RoomType>()
@@ -68,7 +80,7 @@ public static class DemoSeedData
             return existing;
         }
 
-        var roomType = RoomType.Create(TenantId, code, name, baseOccupancy, maxOccupancy);
+        var roomType = RoomType.Create(TenantId, code, name, baseOccupancy, maxOccupancy, baseNightlyRate);
         context.Set<RoomType>().Add(roomType);
 
         return roomType;
@@ -100,36 +112,82 @@ public static class DemoSeedData
         }
     }
 
-    private static async Task SeedGuestsAsync(HotelDbContext context, CancellationToken cancellationToken)
+    private static async Task<Dictionary<string, Guest>> SeedGuestsAsync(
+        HotelDbContext context,
+        CancellationToken cancellationToken)
     {
-        await AddGuestIfMissingAsync(
-            context,
-            "Jane Doe",
-            Email.Create("jane.doe@example.com"),
-            null,
-            cancellationToken);
-
-        await AddGuestIfMissingAsync(
-            context,
-            "Min Kim",
-            null,
-            PhoneNumber.Create("+8210-1234-5678"),
-            cancellationToken);
+        return new Dictionary<string, Guest>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Jane Doe"] = await GetOrAddGuestAsync(
+                context,
+                "Jane Doe",
+                Email.Create("jane.doe@example.com"),
+                null,
+                cancellationToken),
+            ["Min Kim"] = await GetOrAddGuestAsync(
+                context,
+                "Min Kim",
+                null,
+                PhoneNumber.Create("+8210-1234-5678"),
+                cancellationToken)
+        };
     }
 
-    private static async Task AddGuestIfMissingAsync(
+    private static async Task<Guest> GetOrAddGuestAsync(
         HotelDbContext context,
         string name,
         Email? email,
         PhoneNumber? phoneNumber,
         CancellationToken cancellationToken)
     {
-        bool exists = await context.Set<Guest>()
-            .AnyAsync(guest => guest.TenantId == TenantId && guest.Name == name, cancellationToken);
+        Guest? existing = await context.Set<Guest>()
+            .SingleOrDefaultAsync(guest => guest.TenantId == TenantId && guest.Name == name, cancellationToken);
 
-        if (!exists)
+        if (existing is not null)
         {
-            context.Set<Guest>().Add(Guest.Create(TenantId, name, email, phoneNumber));
+            return existing;
         }
+
+        var guest = Guest.Create(TenantId, name, email, phoneNumber);
+        context.Set<Guest>().Add(guest);
+
+        return guest;
+    }
+
+    private static async Task SeedReservationsAsync(
+        HotelDbContext context,
+        IReadOnlyDictionary<string, RoomType> roomTypes,
+        IReadOnlyDictionary<string, Guest> guests,
+        CancellationToken cancellationToken)
+    {
+        var stayPeriod = new DateRange(new DateOnly(2026, 7, 10), new DateOnly(2026, 7, 12));
+        RoomType roomType = roomTypes["SGL"];
+        Guest guest = guests["Jane Doe"];
+
+        bool exists = await context.Set<Reservation>()
+            .AnyAsync(
+                reservation =>
+                    reservation.TenantId == TenantId &&
+                    reservation.PrimaryGuestId == guest.Id &&
+                    reservation.RoomTypeId == roomType.Id &&
+                    reservation.StayPeriod.Start == stayPeriod.Start &&
+                    reservation.StayPeriod.End == stayPeriod.End,
+                cancellationToken);
+
+        if (exists)
+        {
+            return;
+        }
+
+        var reservation = Reservation.Create(
+            TenantId,
+            guest.Id,
+            roomType.Id,
+            stayPeriod,
+            guestCount: 1,
+            PriceCalculator.CalculateStayTotal(roomType.BaseNightlyRate, stayPeriod));
+        reservation.Confirm();
+
+        context.Set<Reservation>().Add(reservation);
     }
 }
