@@ -45,6 +45,7 @@ internal static class ConfirmReservationEndpoint
             result.Id.Value,
             result.PrimaryGuestId.Value,
             result.RoomTypeId.Value,
+            result.AssignedRoomId?.Value,
             result.CheckInDate,
             result.CheckOutDate,
             result.GuestCount,

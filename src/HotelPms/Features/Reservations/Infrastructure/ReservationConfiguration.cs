@@ -1,5 +1,6 @@
 using HotelPms.Features.Guests.Domain;
 using HotelPms.Features.Reservations.Domain;
+using HotelPms.Features.Rooms.Domain;
 using HotelPms.Features.RoomTypes.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -28,6 +29,9 @@ public sealed class ReservationConfiguration : IEntityTypeConfiguration<Reservat
         builder.Property(reservation => reservation.RoomTypeId)
             .HasColumnName("room_type_id")
             .IsRequired();
+
+        builder.Property(reservation => reservation.AssignedRoomId)
+            .HasColumnName("assigned_room_id");
 
         builder.ComplexProperty(
             reservation => reservation.StayPeriod,
@@ -74,6 +78,9 @@ public sealed class ReservationConfiguration : IEntityTypeConfiguration<Reservat
         builder.HasIndex(reservation => new { reservation.TenantId, reservation.RoomTypeId })
             .HasDatabaseName("ix_reservations_tenant_id_room_type_id");
 
+        builder.HasIndex(reservation => new { reservation.TenantId, reservation.AssignedRoomId })
+            .HasDatabaseName("ix_reservations_tenant_id_assigned_room_id");
+
         builder.HasOne<Guest>()
             .WithMany()
             .HasForeignKey(reservation => new { reservation.TenantId, reservation.PrimaryGuestId })
@@ -84,6 +91,12 @@ public sealed class ReservationConfiguration : IEntityTypeConfiguration<Reservat
             .WithMany()
             .HasForeignKey(reservation => new { reservation.TenantId, reservation.RoomTypeId })
             .HasPrincipalKey(roomType => new { roomType.TenantId, roomType.Id })
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<Room>()
+            .WithMany()
+            .HasForeignKey(reservation => new { reservation.TenantId, reservation.AssignedRoomId })
+            .HasPrincipalKey(room => new { room.TenantId, room.Id })
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.Ignore(reservation => reservation.DomainEvents);

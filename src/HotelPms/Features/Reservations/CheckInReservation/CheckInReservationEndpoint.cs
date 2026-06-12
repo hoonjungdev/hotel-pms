@@ -1,32 +1,37 @@
 using FluentValidation;
 using HotelPms.Features.Reservations.Domain;
+using HotelPms.Features.Rooms.Domain;
 using HotelPms.Shared.Api;
 using HotelPms.Shared.MultiTenancy;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HotelPms.Features.Reservations.CancelReservation;
+namespace HotelPms.Features.Reservations.CheckInReservation;
 
-internal static class CancelReservationEndpoint
+internal static class CheckInReservationEndpoint
 {
-    public static RouteGroupBuilder MapCancelReservationEndpoint(this RouteGroupBuilder group)
+    public static RouteGroupBuilder MapCheckInReservationEndpoint(this RouteGroupBuilder group)
     {
-        group.MapPost("/{reservationId:guid}/cancel", CancelReservationAsync)
-            .WithName("CancelReservation");
+        group.MapPost("/{reservationId:guid}/check-in", CheckInReservationAsync)
+            .WithName("CheckInReservation");
 
         return group;
     }
 
-    private static async Task<Results<Ok<ReservationResponse>, NotFound, ValidationProblem>> CancelReservationAsync(
+    private static async Task<Results<Ok<ReservationResponse>, NotFound, ValidationProblem>> CheckInReservationAsync(
         [FromHeader(Name = ApiDefaults.TenantHeaderName)] Guid tenantId,
         Guid reservationId,
-        CancelReservationHandler handler,
+        CheckInReservationRequest request,
+        CheckInReservationHandler handler,
         CancellationToken cancellationToken)
     {
         try
         {
-            CancelReservationResult? result = await handler.HandleAsync(
-                new CancelReservationCommand(new TenantId(tenantId), new ReservationId(reservationId)),
+            CheckInReservationResult? result = await handler.HandleAsync(
+                new CheckInReservationCommand(
+                    new TenantId(tenantId),
+                    new ReservationId(reservationId),
+                    new RoomId(request.RoomId)),
                 cancellationToken);
 
             return result is null
@@ -39,7 +44,7 @@ internal static class CancelReservationEndpoint
         }
     }
 
-    private static ReservationResponse ToResponse(CancelReservationResult result)
+    private static ReservationResponse ToResponse(CheckInReservationResult result)
     {
         return new ReservationResponse(
             result.Id.Value,

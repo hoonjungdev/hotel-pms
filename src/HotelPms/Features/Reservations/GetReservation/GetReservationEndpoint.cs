@@ -37,6 +37,7 @@ internal static class GetReservationEndpoint
             reservation.Id.Value,
             reservation.PrimaryGuestId.Value,
             reservation.RoomTypeId.Value,
+            reservation.AssignedRoomId?.Value,
             reservation.CheckInDate,
             reservation.CheckOutDate,
             reservation.GuestCount,

@@ -4,9 +4,9 @@ using HotelPms.Features.Rooms.Domain;
 using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Shared.Domain.ValueObjects;
 
-namespace HotelPms.Features.Reservations.ConfirmReservation;
+namespace HotelPms.Features.Reservations.CheckInReservation;
 
-public sealed record ConfirmReservationResult(
+public sealed record CheckInReservationResult(
     ReservationId Id,
     GuestId PrimaryGuestId,
     RoomTypeId RoomTypeId,

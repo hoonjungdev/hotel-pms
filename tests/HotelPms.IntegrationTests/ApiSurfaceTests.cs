@@ -38,6 +38,9 @@ public class ApiSurfaceTests
         Assert.True(document.RootElement.GetProperty("paths").TryGetProperty("/api/guests", out _));
         Assert.True(document.RootElement.GetProperty("paths").TryGetProperty("/api/rooms", out _));
         Assert.True(document.RootElement.GetProperty("paths").TryGetProperty("/api/room-types", out _));
+        Assert.True(document.RootElement.GetProperty("paths").TryGetProperty("/api/reservations", out _));
+        Assert.True(document.RootElement.GetProperty("paths").TryGetProperty("/api/reservations/{reservationId}/confirm", out _));
+        Assert.True(document.RootElement.GetProperty("paths").TryGetProperty("/api/reservations/{reservationId}/check-in", out _));
     }
 
     private static WebApplicationFactory<Program> CreateFactory()

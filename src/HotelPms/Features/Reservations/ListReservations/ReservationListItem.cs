@@ -10,6 +10,7 @@ public sealed record ReservationListItem(
     ReservationId Id,
     GuestId PrimaryGuestId,
     RoomTypeId RoomTypeId,
+    RoomId? AssignedRoomId,
     DateOnly CheckInDate,
     DateOnly CheckOutDate,
     int GuestCount,

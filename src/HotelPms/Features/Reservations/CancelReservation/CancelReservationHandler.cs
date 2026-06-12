@@ -40,6 +40,7 @@ public class CancelReservationHandler(HotelDbContext context)
             reservation.Id,
             reservation.PrimaryGuestId,
             reservation.RoomTypeId,
+            reservation.AssignedRoomId,
             reservation.StayPeriod.Start,
             reservation.StayPeriod.End,
             reservation.GuestCount,

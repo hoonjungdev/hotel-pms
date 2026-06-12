@@ -1,4 +1,5 @@
 using HotelPms.Features.Guests.Domain;
+using HotelPms.Features.Rooms.Domain;
 using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Shared.Domain;
 using HotelPms.Shared.Domain.ValueObjects;
@@ -15,6 +16,7 @@ public class Reservation : AggregateRoot
     public DateRange StayPeriod { get; private set; }
     public int GuestCount { get; private set; }
     public Money TotalAmount { get; private set; }
+    public RoomId? AssignedRoomId { get; private set; }
     public ReservationStatus Status { get; private set; }
 
     private Reservation() { }
@@ -85,7 +87,38 @@ public class Reservation : AggregateRoot
             throw new InvalidOperationException("Reservation is already cancelled.");
         }
 
+        if (Status == ReservationStatus.CheckedIn)
+        {
+            throw new InvalidOperationException("In-house reservations cannot be cancelled.");
+        }
+
         Status = ReservationStatus.Cancelled;
+    }
+
+    public void CheckIn(Room room)
+    {
+        if (Status != ReservationStatus.Confirmed)
+        {
+            throw new InvalidOperationException("Only confirmed reservations can be checked in.");
+        }
+
+        if (room.TenantId != TenantId)
+        {
+            throw new InvalidOperationException("Assigned room must belong to the reservation tenant.");
+        }
+
+        if (room.RoomTypeId != RoomTypeId)
+        {
+            throw new InvalidOperationException("Assigned room must match the reservation room type.");
+        }
+
+        if (room.Condition != RoomCondition.Clean)
+        {
+            throw new InvalidOperationException("Only clean rooms can be assigned at check-in.");
+        }
+
+        AssignedRoomId = room.Id;
+        Status = ReservationStatus.CheckedIn;
     }
 
     private static void EnsureValidTenantId(TenantId tenantId)
