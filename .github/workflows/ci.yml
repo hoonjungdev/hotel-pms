@@ -7,13 +7,24 @@ on:
     branches: [main]
 
 jobs:
-  format:
-    name: Format check
+  build-and-test:
+    name: Build and test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore HotelPms.slnx
+
       - name: Verify formatting
-        run: dotnet format HotelPms.slnx --verify-no-changes --severity warn
+        run: dotnet format HotelPms.slnx --verify-no-changes --no-restore
+
+      - name: Build
+        run: dotnet build HotelPms.slnx --no-restore
+
+      - name: Test
+        run: dotnet test HotelPms.slnx --no-restore --no-build
