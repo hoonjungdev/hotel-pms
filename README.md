@@ -42,6 +42,13 @@ Reservations are sold by room type first. At check-in, a confirmed reservation c
 
 Reservation creation serializes availability checks per tenant and room type with a PostgreSQL transaction-level advisory lock. This keeps the "last room" case from accepting two overlapping reservations while still allowing different room types to be booked concurrently.
 
+## Project Documents
+
+- `CONTEXT.md` defines the domain glossary. Use it as the source of truth for hotel PMS language.
+- `AGENTS.md` defines the working contract for AI agents contributing to this repository.
+- `docs/adr/` records architectural decisions that would be costly or surprising to reverse later.
+- `docs/api/hotel-pms.http` is the canonical local API demo scenario file.
+
 ## Current API Surface
 
 All tenant-scoped endpoints currently require the `X-Tenant-Id` header.

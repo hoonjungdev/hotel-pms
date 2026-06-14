@@ -8,6 +8,10 @@ This context describes the domain language for a small guesthouse or pension pro
 A sellable category of room, such as Single, Double, or Family, used for inventory and reservation availability before a physical room is assigned.
 _Avoid_: Room class, room category
 
+**Physical Room**:
+An individual room at the property that can be cleaned, taken out of service, and assigned to a reservation at check-in.
+_Avoid_: Room unit, actual room
+
 **Base Nightly Rate**:
 The default price for one night of stay in a room type before more advanced rate plans or promotions are applied.
 _Avoid_: Price, fee, tariff
@@ -27,6 +31,18 @@ _Avoid_: Arrival, admission
 **Check-out**:
 The departure action that ends an in-house reservation and makes the assigned room require cleaning.
 _Avoid_: Departure, closing a stay
+
+**Housekeeping**:
+The operational area responsible for tracking and changing the cleaning readiness of physical rooms after check-out and before check-in.
+_Avoid_: Cleaning module, maid service
+
+**Room Condition**:
+The operational readiness state of a physical room, such as clean, dirty, or out of service.
+_Avoid_: Room status, cleaning status
+
+**Stay Period**:
+The date range for the nights a reservation occupies room type inventory.
+_Avoid_: Booking period, reservation dates
 
 **Reservation Availability**:
 The inventory state that answers whether a room type can accept another reservation for a stay period. It is based on sellable room inventory and overlapping active reservations; Pending and Confirmed reservations consume availability, while Cancelled reservations do not.
