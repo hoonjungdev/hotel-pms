@@ -36,6 +36,8 @@ public class ApiSurfaceTests
 
         Assert.Equal("3.1.1", document.RootElement.GetProperty("openapi").GetString());
         Assert.True(document.RootElement.GetProperty("paths").TryGetProperty("/api/guests", out _));
+        Assert.True(document.RootElement.GetProperty("paths").TryGetProperty("/api/housekeeping/rooms", out _));
+        Assert.True(document.RootElement.GetProperty("paths").TryGetProperty("/api/housekeeping/rooms/{roomId}/mark-clean", out _));
         Assert.True(document.RootElement.GetProperty("paths").TryGetProperty("/api/rooms", out _));
         Assert.True(document.RootElement.GetProperty("paths").TryGetProperty("/api/room-types", out _));
         Assert.True(document.RootElement.GetProperty("paths").TryGetProperty("/api/reservations", out _));

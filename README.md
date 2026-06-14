@@ -60,6 +60,8 @@ All tenant-scoped endpoints currently require the `X-Tenant-Id` header.
 | `GET` | `/api/guests` | List guests |
 | `GET` | `/api/guests/{guestId}` | Get one guest |
 | `POST` | `/api/guests` | Register guest |
+| `GET` | `/api/housekeeping/rooms` | List rooms by housekeeping readiness |
+| `POST` | `/api/housekeeping/rooms/{roomId}/mark-clean` | Mark a room clean after housekeeping |
 | `GET` | `/api/rooms` | List rooms |
 | `GET` | `/api/rooms/{roomId}` | Get one room |
 | `POST` | `/api/rooms` | Add physical room for a room type |
@@ -185,6 +187,20 @@ Check out a reservation:
 
 ```bash
 curl -X POST http://localhost:5216/api/reservations/replace-with-reservation-id/check-out \
+  -H "X-Tenant-Id: 11111111-1111-1111-1111-111111111111"
+```
+
+List rooms that need housekeeping:
+
+```bash
+curl http://localhost:5216/api/housekeeping/rooms?condition=Dirty \
+  -H "X-Tenant-Id: 11111111-1111-1111-1111-111111111111"
+```
+
+Mark a room clean after housekeeping:
+
+```bash
+curl -X POST http://localhost:5216/api/housekeeping/rooms/replace-with-room-id/mark-clean \
   -H "X-Tenant-Id: 11111111-1111-1111-1111-111111111111"
 ```
 

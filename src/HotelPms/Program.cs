@@ -3,6 +3,9 @@ using HotelPms.Features.Guests;
 using HotelPms.Features.Guests.GetGuest;
 using HotelPms.Features.Guests.ListGuests;
 using HotelPms.Features.Guests.RegisterGuest;
+using HotelPms.Features.Housekeeping;
+using HotelPms.Features.Housekeeping.ListHousekeepingRooms;
+using HotelPms.Features.Housekeeping.MarkRoomClean;
 using HotelPms.Features.Reservations;
 using HotelPms.Features.Reservations.CancelReservation;
 using HotelPms.Features.Reservations.CheckInReservation;
@@ -47,6 +50,9 @@ try
     builder.Services.AddScoped<IValidator<RegisterGuestCommand>, RegisterGuestCommandValidator>();
     builder.Services.AddScoped<ListGuestsHandler>();
     builder.Services.AddScoped<GetGuestHandler>();
+    builder.Services.AddScoped<ListHousekeepingRoomsHandler>();
+    builder.Services.AddScoped<MarkRoomCleanHandler>();
+    builder.Services.AddScoped<IValidator<MarkRoomCleanCommand>, MarkRoomCleanCommandValidator>();
     builder.Services.AddScoped<AddRoomHandler>();
     builder.Services.AddScoped<IValidator<AddRoomCommand>, AddRoomCommandValidator>();
     builder.Services.AddScoped<ListRoomsHandler>();
@@ -90,6 +96,7 @@ try
     }));
 
     app.MapGuestEndpoints();
+    app.MapHousekeepingEndpoints();
     app.MapRoomEndpoints();
     app.MapRoomTypeEndpoints();
     app.MapReservationEndpoints();

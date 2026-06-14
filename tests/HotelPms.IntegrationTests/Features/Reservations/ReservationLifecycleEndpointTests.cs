@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using HotelPms.Features.Guests;
 using HotelPms.Features.Guests.RegisterGuest;
+using HotelPms.Features.Housekeeping;
 using HotelPms.Features.Reservations;
 using HotelPms.Features.Reservations.CheckInReservation;
 using HotelPms.Features.Reservations.CreateReservation;
@@ -9,7 +10,6 @@ using HotelPms.Features.Reservations.Domain;
 using HotelPms.Features.Rooms;
 using HotelPms.Features.Rooms.AddRoom;
 using HotelPms.Features.Rooms.Domain;
-using HotelPms.Features.Rooms.UpdateRoomCondition;
 using HotelPms.Features.RoomTypes;
 using HotelPms.Features.RoomTypes.CreateRoomType;
 using HotelPms.Infrastructure.Database;
@@ -107,9 +107,16 @@ public class ReservationLifecycleEndpointTests
 
         Assert.Equal(RoomCondition.Dirty.ToString(), dirtyRoom.Condition);
 
-        HttpResponseMessage cleanRoomResponse = await client.PatchAsJsonAsync(
-            $"/api/rooms/{room.Id}/condition",
-            new UpdateRoomConditionRequest("Clean"));
+        HousekeepingRoomResponse[]? dirtyRooms = await client.GetFromJsonAsync<HousekeepingRoomResponse[]>(
+            "/api/housekeeping/rooms?condition=Dirty");
+
+        Assert.NotNull(dirtyRooms);
+        HousekeepingRoomResponse housekeepingRoom = Assert.Single(dirtyRooms);
+        Assert.Equal(room.Id, housekeepingRoom.Id);
+
+        HttpResponseMessage cleanRoomResponse = await client.PostAsync(
+            $"/api/housekeeping/rooms/{room.Id}/mark-clean",
+            content: null);
 
         Assert.Equal(HttpStatusCode.NoContent, cleanRoomResponse.StatusCode);
 

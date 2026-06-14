@@ -54,6 +54,16 @@ X-Tenant-Id: {{tenantId}}
   "condition": "Dirty"
 }
 
+### List housekeeping rooms
+# Optional condition values: Clean, Dirty, OutOfService.
+GET {{baseUrl}}/api/housekeeping/rooms?condition=Dirty
+X-Tenant-Id: {{tenantId}}
+
+### Mark room clean after housekeeping
+# Replace roomId with a dirty room ID returned by "List housekeeping rooms".
+POST {{baseUrl}}/api/housekeeping/rooms/{{roomId}}/mark-clean
+X-Tenant-Id: {{tenantId}}
+
 ### Register guest
 POST {{baseUrl}}/api/guests
 Content-Type: application/json
