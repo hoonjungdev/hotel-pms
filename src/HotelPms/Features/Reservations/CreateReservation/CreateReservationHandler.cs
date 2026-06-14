@@ -8,11 +8,12 @@ using HotelPms.Features.RoomTypes.Domain;
 using HotelPms.Infrastructure.Database;
 using HotelPms.Shared.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace HotelPms.Features.Reservations.CreateReservation;
 
-public class CreateReservationHandler(HotelDbContext context, IValidator<CreateReservationCommand> validator)
+public class CreateReservationHandler(
+    HotelDbContext context,
+    IValidator<CreateReservationCommand> validator)
 {
     public async Task<CreateReservationResult> HandleAsync(
         CreateReservationCommand command,
@@ -55,38 +56,32 @@ public class CreateReservationHandler(HotelDbContext context, IValidator<CreateR
         }
 
         var stayPeriod = new DateRange(command.CheckInDate, command.CheckOutDate);
+        Reservation reservation;
 
-        await using IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-
-        await context.AcquireReservationCreationLockAsync(command.TenantId, command.RoomTypeId, cancellationToken);
-
-        ReservationAvailability availability = await context.GetReservationAvailabilityAsync(
-            command.TenantId,
-            command.RoomTypeId,
-            stayPeriod,
-            cancellationToken);
-
-        if (!availability.HasAvailability)
+        try
+        {
+            reservation = await context.AddReservationWhenAvailableAsync(
+                command.TenantId,
+                command.RoomTypeId,
+                stayPeriod,
+                () => Reservation.Create(
+                    command.TenantId,
+                    command.PrimaryGuestId,
+                    command.RoomTypeId,
+                    stayPeriod,
+                    command.GuestCount,
+                    PriceCalculator.CalculateStayTotal(roomType.BaseNightlyRate, stayPeriod)),
+                cancellationToken);
+        }
+        catch (NoReservationAvailabilityException exception)
         {
             throw new ValidationException(
             [
                 new ValidationFailure(
                     nameof(CreateReservationCommand.RoomTypeId),
-                    "No rooms are available for the requested stay period.")
+                    exception.Message)
             ]);
         }
-
-        var reservation = Reservation.Create(
-            command.TenantId,
-            command.PrimaryGuestId,
-            command.RoomTypeId,
-            stayPeriod,
-            command.GuestCount,
-            PriceCalculator.CalculateStayTotal(roomType.BaseNightlyRate, stayPeriod));
-
-        context.Set<Reservation>().Add(reservation);
-        await context.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
 
         return new CreateReservationResult(
             reservation.Id,
